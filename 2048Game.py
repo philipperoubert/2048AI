@@ -1,6 +1,8 @@
 import numpy as np
 import random
 from scipy import ndimage
+import os
+from termcolor import colored
 
 board = np.zeros([4,4])
 
@@ -108,8 +110,32 @@ def spawn_number():
     return(len(free_cells))  
 
 
+
 free_cells = spawn_number()
+
+
+def cls():
+    os.system('cls' if os.name=='nt' else 'clear')
+
+def beautify_print(board):
+
+    color_dict = {0:"red", 2:"green", 4:"yellow", 8:"blue", 16:"magenta", 32:"cyan", 64:"green", 128:"yellow", 256:"blue", 512:"magenta", 1024:"cyan", 2048:"green", 5096:"yellow"}
+    cls()
+    print("==================")
+    for i in range(4):
+        print("|", end = " ")
+        for j in range(3):
+            try:
+                print(colored(str(int(board[i][j])), color_dict[int(board[i][j])]), end = " | ")
+            except:
+                print(board[i][j], end = " | ")
+        try:
+            print(colored(str(int(board[i][3])), color_dict[int(board[i][3])]), end = " |\n")
+        except:
+            print(board[i][3], end = " |\n")
+        print("==================")
+
 while(free_cells > 0):
-    print(board)
+    beautify_print(board)
     direction = input()
     make_move(direction)
