@@ -4,10 +4,11 @@ import os
 from scipy import ndimage
 from termcolor import colored
 
+
 #creating the board
 
 
-def make_move(direction, board):
+def make_move(direction, board, points):
     """
     Makes a move on the current board.
     params:
@@ -31,6 +32,7 @@ def make_move(direction, board):
 
                         elif(board[i-1][j] == board[i][j] and (str(i-1) + "," + str(j)) not in alreadymerged and (str(i) + "," + str(j)) not in alreadymerged):
                             board[i-1][j] *= 2
+                            points+=board[i-1][j]
                             board[i][j] = 0
                             alreadymerged.append(str(i-1) + "," + str(j)) #logs tiles which have merged
                             alreadymerged.append(str(i) + "," + str(j)) #logs tiles which have merged
@@ -50,6 +52,7 @@ def make_move(direction, board):
 
                         elif(board[i+1][j] == board[i][j] and (str(i) + "," + str(j)) not in alreadymerged and (str(i+1) + "," + str(j)) not in alreadymerged):
                             board[i+1][j] *= 2
+                            points += board[i+1][j]
                             board[i][j] = 0
                             alreadymerged.append(str(i) + "," + str(j))
                             alreadymerged.append(str(i+1) + "," + str(j))
@@ -69,6 +72,7 @@ def make_move(direction, board):
 
                         elif(board[i][j-1] == board[i][j] and (str(j) + "," + str(i)) not in alreadymerged and (str(j-1) + "," + str(i)) not in alreadymerged):
                             board[i][j-1] *= 2
+                            points+= board[i][j-1]
                             board[i][j] = 0
                             alreadymerged.append(str(j) + "," + str(i))
                             alreadymerged.append(str(j-1) + "," + str(i))
@@ -87,6 +91,7 @@ def make_move(direction, board):
 
                         elif(board[i][j+1] == board[i][j] and (str(j) + "," + str(i)) not in alreadymerged and (str(j+1) + "," + str(i)) not in alreadymerged):
                             board[i][j+1] *= 2
+                            points+=board[i][j+1]
                             board[i][j] = 0
                             alreadymerged.append(str(j) + "," + str(i))
                             alreadymerged.append(str(j+1) + "," + str(i))
@@ -96,8 +101,8 @@ def make_move(direction, board):
     if(len(np.where(board.reshape(-1) == 0)[0]) > 0 and not np.array_equal(board, oldboard)):
         updated_board = spawn_number(board)
 
-        return updated_board
-    return board
+        return updated_board,points
+    return board,points
 
 def moves_available(board):
     """
@@ -114,10 +119,10 @@ def moves_available(board):
         return True
 
     initialboard = np.copy(board)
-    initialboard = make_move("w", initialboard)
-    initialboard = make_move("s", initialboard)
-    initialboard = make_move("a", initialboard)
-    initialboard = make_move("d", initialboard)
+    initialboard,_ = make_move("w", initialboard,0)
+    initialboard,_ = make_move("s", initialboard,0)
+    initialboard,_ = make_move("a", initialboard,0)
+    initialboard,_ = make_move("d", initialboard,0)
 
     if np.array_equal(initialboard, board):
         print("Should be game over")
@@ -175,14 +180,17 @@ def beautify_print(board):
 
 print("Game starting")
 board = np.zeros([4, 4])
-board[1] = [2,2,2,0]
 free_cells = spawn_number(board)
+free_cells = spawn_number(board)
+points = 0
+print("Points = " + str(points))
 beautify_print(board)
 direction = input()
-board = make_move(direction, board)
+board,points = make_move(direction, board, points)
 while moves_available(board):
+    print("points = " + str(points))
     beautify_print(board)
     direction = input()
-    board = make_move(direction, board)
+    board,points = make_move(direction, board, points)
 beautify_print(board)
 print("Game over")
