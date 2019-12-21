@@ -77,8 +77,8 @@ def make_move(direction, board):
 
     if direction == "d": #right
         for _ in range(3):
-            for i in range(3, -1, -1):
-                for j in range(4):
+            for i in range(4):
+                for j in range(4, -1, -1):
                     height = j
                     while height < 3:
                         if board[i][j+1] == 0:
@@ -175,6 +175,7 @@ def beautify_print(board):
 
 print("Game starting")
 board = np.zeros([4, 4])
+board[1] = [2,2,2,0]
 free_cells = spawn_number(board)
 beautify_print(board)
 direction = input()
