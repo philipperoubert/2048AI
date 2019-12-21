@@ -151,10 +151,10 @@ class Game2048:
             return True
 
         initialboard = np.copy(board)
-        initialboard, _ = make_move("w", initialboard, 0)
-        initialboard, _ = make_move("s", initialboard, 0)
-        initialboard, _ = make_move("a", initialboard, 0)
-        initialboard, _ = make_move("d", initialboard, 0)
+        initialboard, _ = game.make_move("w", initialboard, 0)
+        initialboard, _ = game.make_move("s", initialboard, 0)
+        initialboard, _ = game.make_move("a", initialboard, 0)
+        initialboard, _ = game.make_move("d", initialboard, 0)
 
         if np.array_equal(initialboard, board):
             print("Should be game over")
