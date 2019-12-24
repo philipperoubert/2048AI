@@ -77,14 +77,14 @@ if __name__ == "__main__":
     print("Board initialised:")
 
     while board1.moves_available():
-        cls() # comment this out if you want the program to print out everything
+        #cls() # comment this out if you want the program to print out everything
         beautify_print(board1.board)
         depth = 0
         max_depth = 2
         tree = {"w": [[],[]], "a":[[],[]], "s":[[],[]], "d":[[],[]]} # {move:[[parents][children]]}
         available_moves = board1.moves_available(True) # Gets a list of all possible moves
 
-        while depth <= max_depth:
+        while depth < max_depth:
 
             # Generate all children nodes
             if depth == 0: # Initialising the tree dictionary with depth 1 children
@@ -143,6 +143,6 @@ if __name__ == "__main__":
             if depth == max_depth:
                 board1.make_move(best_move[0])
 
-cls()
+#cls()
 beautify_print(board1.board)
 print("Final score: " + str(board1.points))
