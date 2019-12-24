@@ -59,7 +59,7 @@ def find_children(board, is_initial=False):
         parents = [board]
     for parent in parents:
         for cell_index in parent.free_cells():
-            for two_four in [2, 4]:
+            for two_four in [2]:
                 spawned_board = Board(parent.board, parent.points)
                 spawned_board.spawn_number(pick_random=False, rand=cell_index, spawn_number=two_four)
                 children.append(spawned_board)
@@ -77,10 +77,10 @@ if __name__ == "__main__":
     print("Board initialised:")
 
     while board1.moves_available():
-        #cls() # comment this out if you want the program to print out everything
+        # cls() # comment this out if you want the program to print out everything
         beautify_print(board1.board)
         depth = 0
-        max_depth = 2
+        max_depth = 3
         tree = {"w": [[],[]], "a":[[],[]], "s":[[],[]], "d":[[],[]]} # {move:[[parents][children]]}
         available_moves = board1.moves_available(True) # Gets a list of all possible moves
 
@@ -107,14 +107,14 @@ if __name__ == "__main__":
                 average_scores.append(0)
                 for i in range(0, len(tree[move][0]), 2):
                     # Probability of 2 * number of points
-                    average_scores[-1] += (0.9 * tree[move][0][i].points)
+                    average_scores[-1] += (1.0 * tree[move][0][i].points)
                     # Probability of 4 * number of points
-                    average_scores[-1] += (0.1 * tree[move][0][i+1].points)
+                    #average_scores[-1] += (0.1 * tree[move][0][i+1].points)
                     # 0.5 because we are dividing by the (number of children / 2),
                     # due to multiplying the number of point with the probability
                     # of having a 2 and a 4 per tile.
                 if len(tree[move][0]) > 0:
-                    average_scores[-1] /= (0.5 * len(tree[move][0]))
+                    average_scores[-1] /=  ( len(tree[move][0]))
                 else:
                     average_scores[-1] = 0
                 print("Move " + move + " has an average " +  str(average_scores[-1]) + " at depth " + str(depth))
@@ -132,10 +132,10 @@ if __name__ == "__main__":
                     best_move = [available_moves[move]]
                     best_move_avg = current_move_avg
             compare_moves = available_moves[:]
-            for move in compare_moves:
-                if move not in best_move:
-                    tree[move][0] = []
-                    available_moves.remove(move)
+            #for move in compare_moves:
+            #    if move not in best_move:
+            #        tree[move][0] = []
+            #        available_moves.remove(move)
             # Make the move
             if len(available_moves) == 1:
                 board1.make_move(best_move[0])
@@ -143,6 +143,6 @@ if __name__ == "__main__":
             if depth == max_depth:
                 board1.make_move(best_move[0])
 
-#cls()
+cls()
 beautify_print(board1.board)
 print("Final score: " + str(board1.points))
