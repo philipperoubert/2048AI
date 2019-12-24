@@ -76,8 +76,8 @@ if __name__ == "__main__":
 
     print("Board initialised:")
 
-    while board1.moves_available:
-
+    while board1.moves_available():
+        cls() # comment this out if you want the program to print out everything
         beautify_print(board1.board)
         depth = 0
         max_depth = 2
@@ -113,7 +113,10 @@ if __name__ == "__main__":
                     # 0.5 because we are dividing by the (number of children / 2),
                     # due to multiplying the number of point with the probability
                     # of having a 2 and a 4 per tile.
-                average_scores[-1] /= (0.5 * len(tree[move][0]))
+                if len(tree[move][0]) > 0:
+                    average_scores[-1] /= (0.5 * len(tree[move][0]))
+                else:
+                    average_scores[-1] = 0
                 print("Move " + move + " has an average " +  str(average_scores[-1]) + " at depth " + str(depth))
 
             # Eliminate bad moves
@@ -133,10 +136,13 @@ if __name__ == "__main__":
                 if move not in best_move:
                     tree[move][0] = []
                     available_moves.remove(move)
-
             # Make the move
             if len(available_moves) == 1:
                 board1.make_move(best_move[0])
                 break
             if depth == max_depth:
                 board1.make_move(best_move[0])
+
+cls()
+beautify_print(board1.board)
+print("Final score: " + str(board1.points))
