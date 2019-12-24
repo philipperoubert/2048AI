@@ -1,7 +1,9 @@
 import numpy as np
 import random
 
+
 class Board(object):
+
     def __init__(self, board=None, points=0):
         if board is None:
             self.board = np.zeros([4, 4])
@@ -42,9 +44,15 @@ class Board(object):
             # right
             self.move_right()
 
+        i, j = self.argmax2d()
+        if (self.in_corner(i, j)):
+            #Change line below to control how strictly it keeps biggest tile in corner
+            self.points *= 1
+
         if(len(np.where(self.board.reshape(-1) == 0)[0]) > 0 and not np.array_equal(self.board, oldboard)):
             if spawn:
                 self.spawn_number()
+
 
     def move_up(self):
         alreadymerged = []
@@ -60,6 +68,8 @@ class Board(object):
                         elif(self.board[i-1][j] == self.board[i][j] and (str(i-1) + "," + str(j)) not in alreadymerged and (str(i) + "," + str(j)) not in alreadymerged):
                             self.board[i-1][j] *= 2
                             self.points += self.board[i-1][j]
+
+
                             self.board[i][j] = 0
                             # logs tiles which have merged
                             alreadymerged.append(str(i-1) + "," + str(j))
@@ -67,6 +77,18 @@ class Board(object):
                             alreadymerged.append(str(i) + "," + str(j))
 
                         height -= 1
+    def in_corner(self, i, j):
+        if((i == 0 and j==0) or (i==0 and j==3) or (i==3 and j==0) or (i==3 and j==3)):
+            return(True)
+        else:
+            return(False)
+    def argmax2d(self):
+        n, m = self.board.shape
+        x_ = np.ravel(self.board)
+        k = np.argmax(x_)
+        i, j = k // m, k % m
+        return i, j
+
 
     def move_down(self):
         alreadymerged = []

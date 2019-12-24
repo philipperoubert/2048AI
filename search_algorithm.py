@@ -70,7 +70,7 @@ if __name__ == "__main__":
         depth = 0
         tree = {"w": [[],[]], "a":[[],[]], "s":[[],[]], "d":[[],[]]} # [[parents][children]]
         available_moves = board1.moves_available(True)
-        while depth < 6:
+        while depth < 3:
             if depth == 0:
                 for move in available_moves:
                     moved_board = Board(board1.board, board1.points)
