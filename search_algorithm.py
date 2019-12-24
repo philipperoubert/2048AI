@@ -66,6 +66,7 @@ if __name__ == "__main__":
     print("Board initialised:")
 
     while board1.moves_available:
+        print(board1.moves_available)
         beautify_print(board1.board)
         depth = 0
         tree = {"w": [[],[]], "a":[[],[]], "s":[[],[]], "d":[[],[]]} # [[parents][children]]

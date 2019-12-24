@@ -44,114 +44,139 @@ class Board(object):
             # right
             self.move_right()
 
-        i, j = self.argmax2d()
-        if (self.in_corner(i, j)):
-            #Change line below to control how strictly it keeps biggest tile in corner
-            self.points *= 1
-
-        if(len(np.where(self.board.reshape(-1) == 0)[0]) > 0 and not np.array_equal(self.board, oldboard)):
+        if (len(np.where(self.board.reshape(-1) == 0)[0]) > 0 and not np.array_equal(self.board, oldboard)):
             if spawn:
                 self.spawn_number()
 
+        self.points = self.rank_board()
 
-    def move_up(self):
+
+    def rank_board(self):
+
+        x1 = 1
+        x2 = 1
+        x3 = 1
+        z1=0
+        i, j = self.argmax2d()
+        if (self.in_corner(i, j)):
+            z1 = 1
+
+        free_cells = np.where(self.board.reshape(-1) == 0)[0]
+        z2 = len(free_cells)
+
+        z3 = self.get_number_adjacent()
+        return(x1*z1 + x2*z2 + x3*z3)
+
+    def get_number_adjacent(self):
+        number_adjacent = 0
+        number_adjacent += self.move_up(False)
+        number_adjacent += self.move_left(False)
+        return(number_adjacent)
+
+
+    def move_up(self, move=True):
         alreadymerged = []
+        merge_counter = 0
         for _ in range(3):  # ensures all pieces move as far as they can
             for i in range(1, 4, 1):
                 for j in range(4):
                     height = i
                     while height > 0:  # prevents tiles moving off screen.
-                        if self.board[i-1][j] == 0:
-                            self.board[i-1][j] = self.board[i][j]
+                        if self.board[i - 1][j] == 0 and move:
+                            self.board[i - 1][j] = self.board[i][j]
                             self.board[i][j] = 0
-
-                        elif(self.board[i-1][j] == self.board[i][j] and (str(i-1) + "," + str(j)) not in alreadymerged and (str(i) + "," + str(j)) not in alreadymerged):
-                            self.board[i-1][j] *= 2
-                            self.points += self.board[i-1][j]
-
-
-                            self.board[i][j] = 0
-                            # logs tiles which have merged
-                            alreadymerged.append(str(i-1) + "," + str(j))
-                            # logs tiles which have merged
-                            alreadymerged.append(str(i) + "," + str(j))
+                        elif (self.board[i - 1][j] == self.board[i][j] and (
+                                str(i - 1) + "," + str(j)) not in alreadymerged and (
+                                      str(i) + "," + str(j)) not in alreadymerged):
+                            if move:
+                                self.board[i - 1][j] *= 2
+                                self.points += self.board[i - 1][j]
+                                self.board[i][j] = 0
+                                # logs tiles which have merged
+                                alreadymerged.append(str(i - 1) + "," + str(j))
+                                # logs tiles which have merged
+                                alreadymerged.append(str(i) + "," + str(j))
+                            merge_counter += 1
 
                         height -= 1
-    def in_corner(self, i, j):
-        if((i == 0 and j==0) or (i==0 and j==3) or (i==3 and j==0) or (i==3 and j==3)):
-            return(True)
-        else:
-            return(False)
-    def argmax2d(self):
-        n, m = self.board.shape
-        x_ = np.ravel(self.board)
-        k = np.argmax(x_)
-        i, j = k // m, k % m
-        return i, j
+        return merge_counter
 
-
-    def move_down(self):
+    def move_down(self, move=True):
+        merge_counter = 0
         alreadymerged = []
-
         for _ in range(3):
             for i in range(3, -1, -1):
                 for j in range(4):
                     height = i
                     while height < 3:
-                        if self.board[i+1][j] == 0:
-                            self.board[i+1][j] = self.board[i][j]
+                        if self.board[i + 1][j] == 0 and move:
+                            self.board[i + 1][j] = self.board[i][j]
                             self.board[i][j] = 0
 
-                        elif(self.board[i+1][j] == self.board[i][j] and (str(i) + "," + str(j)) not in alreadymerged and (str(i+1) + "," + str(j)) not in alreadymerged):
-                            self.board[i+1][j] *= 2
-                            self.points += self.board[i+1][j]
-                            self.board[i][j] = 0
-                            alreadymerged.append(str(i) + "," + str(j))
-                            alreadymerged.append(str(i+1) + "," + str(j))
+                        elif (self.board[i + 1][j] == self.board[i][j] and (
+                                str(i) + "," + str(j)) not in alreadymerged and (
+                                      str(i + 1) + "," + str(j)) not in alreadymerged):
+                            if move:
+                                self.board[i + 1][j] *= 2
+                                self.points += self.board[i + 1][j]
+                                self.board[i][j] = 0
+                                alreadymerged.append(str(i) + "," + str(j))
+                                alreadymerged.append(str(i + 1) + "," + str(j))
+                            merge_counter += 1
 
                         height += 1
+        return merge_counter
 
-    def move_left(self):
+    def move_left(self, move=True):
         alreadymerged = []
-
+        merge_counter = 0
         for _ in range(3):
             for i in range(4):
                 for j in range(4):
                     height = j
                     while height > 0:
-                        if self.board[i][j-1] == 0:
-                            self.board[i][j-1] = self.board[i][j]
+                        if self.board[i][j - 1] == 0 and move:
+                            self.board[i][j - 1] = self.board[i][j]
                             self.board[i][j] = 0
 
-                        elif(self.board[i][j-1] == self.board[i][j] and (str(j) + "," + str(i)) not in alreadymerged and (str(j-1) + "," + str(i)) not in alreadymerged):
-                            self.board[i][j-1] *= 2
-                            self.points += self.board[i][j-1]
-                            self.board[i][j] = 0
-                            alreadymerged.append(str(j) + "," + str(i))
-                            alreadymerged.append(str(j-1) + "," + str(i))
+                        elif (self.board[i][j - 1] == self.board[i][j] and (
+                                str(j) + "," + str(i)) not in alreadymerged and (
+                                      str(j - 1) + "," + str(i)) not in alreadymerged):
 
+                            if move:
+                                self.board[i][j - 1] *= 2
+                                self.points += self.board[i][j - 1]
+
+                                self.board[i][j] = 0
+                                alreadymerged.append(str(j) + "," + str(i))
+                                alreadymerged.append(str(j - 1) + "," + str(i))
+                            merge_counter += 1
                         height -= 1
+        return merge_counter
 
-    def move_right(self):
+    def move_right(self, move=True):
         alreadymerged = []
-
+        merge_counter = 0
         for _ in range(3):
             for i in range(4):
                 for j in range(4, -1, -1):
                     height = j
                     while height < 3:
-                        if self.board[i][j+1] == 0:
-                            self.board[i][j+1] = self.board[i][j]
+                        if self.board[i][j + 1] == 0:
+                            self.board[i][j + 1] = self.board[i][j]
                             self.board[i][j] = 0
-
-                        elif(self.board[i][j+1] == self.board[i][j] and (str(j) + "," + str(i)) not in alreadymerged and (str(j+1) + "," + str(i)) not in alreadymerged):
-                            self.board[i][j+1] *= 2
-                            self.points += self.board[i][j+1]
-                            self.board[i][j] = 0
-                            alreadymerged.append(str(j) + "," + str(i))
-                            alreadymerged.append(str(j+1) + "," + str(i))
-
+                        elif (self.board[i][j + 1] == self.board[i][j] and (
+                                str(j) + "," + str(i)) not in alreadymerged and (
+                                      str(j + 1) + "," + str(i)) not in alreadymerged):
+                            if move:
+                                self.board[i][j + 1] *= 2
+                                self.points += self.board[i][j + 1]
+                                self.board[i][j] = 0
+                                alreadymerged.append(str(j) + "," + str(i))
+                                alreadymerged.append(str(j + 1) + "," + str(i))
+                            merge_counter += 1
                         height += 1
+        return merge_counter
 
     def spawn_number(self, pick_random=True, rand=0, spawn_number=0):
         """
@@ -165,7 +190,7 @@ class Board(object):
         if len(free_cells) > 0:
             # picks a random free spaces to spawn
             if pick_random:
-                rand = random.randint(0, len(free_cells)-1)
+                rand = random.randint(0, len(free_cells) - 1)
             if spawn_number == 0:
                 if random.random() < 0.9:
                     # 90% of the time it will spawn a 2
@@ -182,6 +207,19 @@ class Board(object):
         free_cells = np.where(self.board.reshape(-1) == 0)[0]  # list containing indexes of 0's
         return free_cells
 
+    def in_corner(self, i, j):
+        if ((i == 0 and j == 0) or (i == 0 and j == 3) or (i == 3 and j == 0) or (i == 3 and j == 3)):
+            return (True)
+        else:
+            return (False)
+
+    def argmax2d(self):
+        n, m = self.board.shape
+        x_ = np.ravel(self.board)
+        k = np.argmax(x_)
+        i, j = k // m, k % m
+        return i, j
+
     def moves_available(self, get_moves=False):
         """
         Determines whether a move can be made.
@@ -194,7 +232,7 @@ class Board(object):
         # list containing indexes of 0's
         free_cells = np.where(self.board.reshape(-1) == 0)[0]
 
-        if len(free_cells) != 0 and get_moves == False:
+        if len(free_cells) != 0 and get_moves is False:
             return True
 
         possible_moves = []
