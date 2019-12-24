@@ -79,9 +79,8 @@ if __name__ == "__main__":
     while board1.moves_available:
 
         beautify_print(board1.board)
-
         depth = 0
-        max_depth = 6
+        max_depth = 2
         tree = {"w": [[],[]], "a":[[],[]], "s":[[],[]], "d":[[],[]]} # {move:[[parents][children]]}
         available_moves = board1.moves_available(True) # Gets a list of all possible moves
 
