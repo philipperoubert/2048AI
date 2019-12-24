@@ -53,9 +53,12 @@ class Board(object):
 
     def rank_board(self):
 
-        x1 = 1
-        x2 = 1
-        x3 = 1
+        x1 = 150 #weighting of highest cell being in top left
+        x2 = -1 #weighting on having many free cells
+        x3 = 5 #weighting of having many adjacent moves available
+        x4 = 50 #weighting of second highest cell being next to highest
+        x5 = 10 #weighting of merging the two largest cells
+
         z1=0
         i, j = self.argmax2d()
         if (self.in_corner(i, j)):
@@ -65,7 +68,19 @@ class Board(object):
         z2 = len(free_cells)
 
         z3 = self.get_number_adjacent()
-        return(x1*z1 + x2*z2 + x3*z3)
+        z4 = 0
+        z5 = self.points
+        locations_second_highest = np.argwhere(self.board == self.second_highest())
+        for h in locations_second_highest:
+            if (h[0] == i + 1 or h[0] == i - 1 and h[1] == j) or (h[1] == j + 1 or h[1] == j - 1 and h[0] == i):
+                z4 = 1
+
+        return (x1 * z1 + x3 * z3 + x4 * z4 + x5*z5 + x2*z2)
+
+    def second_highest(self):
+        flat = self.board.flatten()
+        flat.sort()
+        return (flat[-2])
 
     def get_number_adjacent(self):
         number_adjacent = 0
@@ -77,6 +92,8 @@ class Board(object):
     def move_up(self, move=True):
         alreadymerged = []
         merge_counter = 0
+        self.points = 0
+
         for _ in range(3):  # ensures all pieces move as far as they can
             for i in range(1, 4, 1):
                 for j in range(4):
@@ -89,9 +106,13 @@ class Board(object):
                                 str(i - 1) + "," + str(j)) not in alreadymerged and (
                                       str(i) + "," + str(j)) not in alreadymerged):
                             if move:
+
                                 self.board[i - 1][j] *= 2
+                                if (self.board[i][j] == self.second_highest()):
+                                    topmerge = 1
                                 self.points += self.board[i - 1][j]
                                 self.board[i][j] = 0
+
                                 # logs tiles which have merged
                                 alreadymerged.append(str(i - 1) + "," + str(j))
                                 # logs tiles which have merged
@@ -104,6 +125,7 @@ class Board(object):
     def move_down(self, move=True):
         merge_counter = 0
         alreadymerged = []
+        self.points = 0
         for _ in range(3):
             for i in range(3, -1, -1):
                 for j in range(4):
@@ -118,18 +140,20 @@ class Board(object):
                                       str(i + 1) + "," + str(j)) not in alreadymerged):
                             if move:
                                 self.board[i + 1][j] *= 2
+                                if (self.board[i][j] == self.second_highest()):
+                                    topmerge = 1
                                 self.points += self.board[i + 1][j]
                                 self.board[i][j] = 0
                                 alreadymerged.append(str(i) + "," + str(j))
                                 alreadymerged.append(str(i + 1) + "," + str(j))
                             merge_counter += 1
-
                         height += 1
         return merge_counter
 
     def move_left(self, move=True):
         alreadymerged = []
         merge_counter = 0
+        self.points = 0
         for _ in range(3):
             for i in range(4):
                 for j in range(4):
@@ -145,6 +169,8 @@ class Board(object):
 
                             if move:
                                 self.board[i][j - 1] *= 2
+                                if (self.board[i][j] == self.second_highest()):
+                                    topmerge = 1
                                 self.points += self.board[i][j - 1]
 
                                 self.board[i][j] = 0
@@ -157,6 +183,7 @@ class Board(object):
     def move_right(self, move=True):
         alreadymerged = []
         merge_counter = 0
+        self.points = 0
         for _ in range(3):
             for i in range(4):
                 for j in range(4, -1, -1):
@@ -171,6 +198,8 @@ class Board(object):
                             if move:
                                 self.board[i][j + 1] *= 2
                                 self.points += self.board[i][j + 1]
+                                if (self.board[i][j] == self.second_highest()):
+                                    topmerge = 1
                                 self.board[i][j] = 0
                                 alreadymerged.append(str(j) + "," + str(i))
                                 alreadymerged.append(str(j + 1) + "," + str(i))
@@ -208,7 +237,7 @@ class Board(object):
         return free_cells
 
     def in_corner(self, i, j):
-        if ((i == 0 and j == 0) or (i == 0 and j == 3) or (i == 3 and j == 0) or (i == 3 and j == 3)):
+        if ((i == 0 and j == 0)):
             return (True)
         else:
             return (False)

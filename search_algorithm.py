@@ -80,7 +80,7 @@ if __name__ == "__main__":
         # cls() # comment this out if you want the program to print out everything
         beautify_print(board1.board)
         depth = 0
-        max_depth = 3
+        max_depth = 2
         tree = {"w": [[],[]], "a":[[],[]], "s":[[],[]], "d":[[],[]]} # {move:[[parents][children]]}
         available_moves = board1.moves_available(True) # Gets a list of all possible moves
 
