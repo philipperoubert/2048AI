@@ -53,11 +53,12 @@ class Board(object):
 
     def rank_board(self):
 
-        x1 = 150 #weighting of highest cell being in top left
-        x2 = -1 #weighting on having many free cells
+        x1 = 100 #weighting of highest cell being in top left
+        x2 = -2 #weighting on having many free cells
         x3 = 5 #weighting of having many adjacent moves available
-        x4 = 50 #weighting of second highest cell being next to highest
-        x5 = 10 #weighting of merging the two largest cells
+        x4 = 100 #weighting of second highest cell being next to highest
+        x5 = 1  #weighting of merging the two largest cells
+        #x6 = 200 #weighting of merging the third largest cells
 
         z1=0
         i, j = self.argmax2d()
@@ -72,15 +73,20 @@ class Board(object):
         z5 = self.points
         locations_second_highest = np.argwhere(self.board == self.second_highest())
         for h in locations_second_highest:
-            if (h[0] == i + 1 or h[0] == i - 1 and h[1] == j) or (h[1] == j + 1 or h[1] == j - 1 and h[0] == i):
+            if (h[0] == 1 and h[1] == 0):
                 z4 = 1
 
-        return (x1 * z1 + x3 * z3 + x4 * z4 + x5*z5 + x2*z2)
+        return (x1*z1 + x3*z3 + x4*z4 + x5*z5 + x2*z2)
 
     def second_highest(self):
         flat = self.board.flatten()
         flat.sort()
         return (flat[-2])
+
+    def third_highest(self):
+        flat = self.board.flatten()
+        flat.sort()
+        return (flat[-3])
 
     def get_number_adjacent(self):
         number_adjacent = 0
@@ -108,8 +114,8 @@ class Board(object):
                             if move:
 
                                 self.board[i - 1][j] *= 2
-                                if (self.board[i][j] == self.second_highest()):
-                                    topmerge = 1
+                                if (self.board[i][j] == self.third_highest()):
+                                    self.points+=100
                                 self.points += self.board[i - 1][j]
                                 self.board[i][j] = 0
 
@@ -140,8 +146,8 @@ class Board(object):
                                       str(i + 1) + "," + str(j)) not in alreadymerged):
                             if move:
                                 self.board[i + 1][j] *= 2
-                                if (self.board[i][j] == self.second_highest()):
-                                    topmerge = 1
+                                if (self.board[i][j] == self.third_highest()):
+                                    self.points += 100
                                 self.points += self.board[i + 1][j]
                                 self.board[i][j] = 0
                                 alreadymerged.append(str(i) + "," + str(j))
@@ -169,8 +175,8 @@ class Board(object):
 
                             if move:
                                 self.board[i][j - 1] *= 2
-                                if (self.board[i][j] == self.second_highest()):
-                                    topmerge = 1
+                                if (self.board[i][j] == self.third_highest()):
+                                    self.points += 100
                                 self.points += self.board[i][j - 1]
 
                                 self.board[i][j] = 0
@@ -198,8 +204,8 @@ class Board(object):
                             if move:
                                 self.board[i][j + 1] *= 2
                                 self.points += self.board[i][j + 1]
-                                if (self.board[i][j] == self.second_highest()):
-                                    topmerge = 1
+                                if (self.board[i][j] == self.third_highest()):
+                                    self.points += 100
                                 self.board[i][j] = 0
                                 alreadymerged.append(str(j) + "," + str(i))
                                 alreadymerged.append(str(j + 1) + "," + str(i))
