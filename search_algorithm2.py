@@ -1,4 +1,4 @@
-from board import Board
+from board2 import Board
 import os
 from termcolor import colored
 from multiprocessing import Pool
@@ -25,14 +25,14 @@ def beautify_print(board):
         for j in range(3):
             try:
                 print(
-                    colored(str(int(board[i][j])), color_dict[int(board[i][j])]), end=" | ")
+                    colored(str( 2 ** int(board[i * 4 + j])), color_dict[2 ** int(board[i * 4 + j])]), end=" | ")
             except:
-                print(board[i][j], end=" | ")
+                print(board[i * 4 + j], end=" | ")
         try:
-            print(colored(str(int(board[i][3])),
-                          color_dict[int(board[i][3])]), end=" |\n")
+            print(colored(str(int(board[i * 4 + 3])),
+                          color_dict[int(board[i * 4 + 3])]), end=" |\n")
         except:
-            print(board[i][3], end=" |\n")
+            print(board[i * 4 + 3], end=" |\n")
         print("==================")
 
 
@@ -60,7 +60,7 @@ def find_children(board, is_initial=False):
         parents = [board]
     for parent in parents:
         for cell_index in parent.free_cells():
-            for two_four in [2]:
+            for two_four in [1]:
                 spawned_board = Board(parent.board, parent.points)
                 spawned_board.spawn_number(pick_random=False, rand=cell_index, spawn_number=two_four)
                 children.append(spawned_board)
@@ -68,8 +68,9 @@ def find_children(board, is_initial=False):
     return children
 
 
+
 if __name__ == "__main__":
-    pool = Pool(processes=5)
+
     board1 = Board()  # Initialise a board
 
     cls()  # using clear function here as it seems that not using it would corrupt the output
@@ -79,15 +80,13 @@ if __name__ == "__main__":
     while board1.moves_available():
         cls() # comment this out if you want the program to print out everything
         beautify_print(board1.board)
-        total_scores = [0, 0, 0, 0]
-
         depth = 0
         max_depth = 6
         tree = {"w": [[], []], "a": [[], []], "s": [[], []], "d": [[], []]}  # {move:[[parents][children]]}
         available_moves = board1.moves_available(True)  # Gets a list of all possible moves
 
         while depth < max_depth:
-
+            print("Finding children...")
             # Generate all children nodes
             if depth == 0:  # Initialising the tree dictionary with depth 1 children
                 for move in available_moves:
@@ -97,16 +96,10 @@ if __name__ == "__main__":
                     del moved_board
             else:
                 for move in available_moves:
-                    a = list(pool.map(find_children, tree[move][0]))
-                    try:
-                        a = a[0]
-                    except:
-                        continue
-                    tree[move][1] += a
+                    tree[move][1] + list(map(find_children, tree[move][0]))
             depth += 1
-
+            print("Finished finding children.")
             # Determine updated average score for each move
-            str_printer = ""
             average_scores = []
             for move in available_moves:
                 tree[move][0] = tree[move][1]
@@ -124,17 +117,7 @@ if __name__ == "__main__":
                     average_scores[-1] /= (len(tree[move][0]))
                 else:
                     average_scores[-1] = 0
-                str_printer += str(move) + ": " + str(average_scores[-1]) + " "
-                if move == "w":
-                    total_scores[0] += average_scores[-1]
-                elif move == "s":
-                    total_scores[1] += average_scores[-1]
-                elif move == "a":
-                    total_scores[2] += average_scores[-1]
-                else:
-                    total_scores[3] += average_scores[-1]
-
-            print(str_printer + "at depth " + str(depth))
+                print("Move " + move + " has an average " + str(average_scores[-1]) + " at depth " + str(depth))
 
             # Eliminate bad moves
             print("Eliminating bad moves")
@@ -158,19 +141,8 @@ if __name__ == "__main__":
                 board1.make_move(best_move[0])
                 break
             if depth == max_depth:
-                if max(total_scores) == total_scores[0]:
-                    board1.make_move("w")
-                elif max(total_scores) == total_scores[1]:
-                    board1.make_move("s")
-                elif max(total_scores) == total_scores[2]:
-                    board1.make_move("a")
-                elif max(total_scores) == total_scores[3]:
-                    board1.make_move("d")
+                board1.make_move(best_move[0])
 
-try:
-    cls()
-    beautify_print(board1.board)
-    print("Final score: " + str(board1.points))
-
-except:
-    pass
+cls()
+beautify_print(board1.board)
+print("Final score: " + str(board1.points))

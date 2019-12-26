@@ -53,11 +53,11 @@ class Board(object):
 
     def rank_board(self):
 
-        x1 = 100 #weighting of highest cell being in top left
-        x2 = -2 #weighting on having many free cells
+        x1 = 200 #weighting of highest cell being in top left
+        x2 = 5 #weighting on having many free cells
         x3 = 5 #weighting of having many adjacent moves available
         x4 = 100 #weighting of second highest cell being next to highest
-        x5 = 1  #weighting of merging the two largest cells
+        x5 = 100  #weighting of merging the two largest cells
         #x6 = 200 #weighting of merging the third largest cells
 
         z1=0
