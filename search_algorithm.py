@@ -60,7 +60,7 @@ def find_children(board, is_initial=False):
         parents = [board]
     for parent in parents:
         for cell_index in parent.free_cells():
-            for two_four in [2]:
+            for two_four in [2, 4]:
                 spawned_board = Board(parent.board, parent.points)
                 spawned_board.spawn_number(pick_random=False, rand=cell_index, spawn_number=two_four)
                 children.append(spawned_board)
@@ -112,16 +112,16 @@ if __name__ == "__main__":
                 tree[move][0] = tree[move][1]
                 tree[move][1] = []
                 average_scores.append(0)
-                for i in range(0, len(tree[move][0]), 2):
+                for i in range(0, len(tree[move][0])-1, 2):
                     # Probability of 2 * number of points
-                    average_scores[-1] += (1.0 * tree[move][0][i].points)
+                    average_scores[-1] += (0.9 * tree[move][0][i].points)
                     # Probability of 4 * number of points
-                    # average_scores[-1] += (0.1 * tree[move][0][i+1].points)
+                    average_scores[-1] += (0.1 * tree[move][0][i+1].points)
                     # 0.5 because we are dividing by the (number of children / 2),
                     # due to multiplying the number of point with the probability
                     # of having a 2 and a 4 per tile.
                 if len(tree[move][0]) > 0:
-                    average_scores[-1] /= (len(tree[move][0]))
+                    average_scores[-1] /= (0.5 * len(tree[move][0]))
                 else:
                     average_scores[-1] = 0
                 str_printer += str(move) + ": " + str(average_scores[-1]) + " "
@@ -133,7 +133,7 @@ if __name__ == "__main__":
                     total_scores[2] += average_scores[-1]
                 else:
                     total_scores[3] += average_scores[-1]
-
+            print(len(tree[move][0]))
             print(str_printer + "at depth " + str(depth))
 
             # Eliminate bad moves
