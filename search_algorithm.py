@@ -69,7 +69,7 @@ def find_children(board, is_initial=False):
 
 
 if __name__ == "__main__":
-    pool = Pool(processes=5)
+    pool = Pool(processes=10)
     board1 = Board()  # Initialise a board
 
     cls()  # using clear function here as it seems that not using it would corrupt the output
@@ -82,11 +82,12 @@ if __name__ == "__main__":
         total_scores = [0, 0, 0, 0]
 
         depth = 0
-        max_depth = 6
+        max_depth = 4
         tree = {"w": [[], []], "a": [[], []], "s": [[], []], "d": [[], []]}  # {move:[[parents][children]]}
         available_moves = board1.moves_available(True)  # Gets a list of all possible moves
 
         while depth < max_depth:
+            print("Generating children...")
 
             # Generate all children nodes
             if depth == 0:  # Initialising the tree dictionary with depth 1 children
@@ -98,12 +99,10 @@ if __name__ == "__main__":
             else:
                 for move in available_moves:
                     a = list(pool.map(find_children, tree[move][0]))
-                    try:
-                        a = a[0]
-                    except:
-                        continue
-                    tree[move][1] += a
+                    a = [j for i in a for j in i]
+                    tree[move][1] = a
             depth += 1
+            print("Children generated")
 
             # Determine updated average score for each move
             str_printer = ""
