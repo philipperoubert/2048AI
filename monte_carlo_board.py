@@ -29,32 +29,50 @@ class Board(object):
         # list containing indexes of 0's
         free_cells = np.where(self.board.reshape(-1) == 0)[0]
 
-        if len(free_cells) != 0 and get_moves is False:
+        if len(free_cells) > 0 and get_moves is False:
+            if get_moves:
+                if self.board[1][1] == 0 or self.board[1][2] == 0 or self.board[2][1] == 0 or self.board[2][2] == 0:
+                    return ["w","a","s","d"]
             return True
-        elif len(free_cells) != 0 and get_moves is True:
-            return ["a","d","w","s"]
 
         possible_moves = []
 
         for i in range(4):
             for j in range(3):
-                if self.board[i][j] == self.board[i][j+1] and self.board[i][j] != 0:
+                if self.board[i][j] == self.board[i][j+1] and not (self.board[i][j] == 0 and self.board[i][j+1] == 0):
                     if "a" not in possible_moves:
                         possible_moves.append("a")
                         possible_moves.append("d")
                     break
+                else:
+                    if self.board[i][j+1] == 0 and self.board[i][j] != 0:
+                        if "d" not in possible_moves:
+                            possible_moves.append("d")
+                        break
+                    elif self.board[i][j] == 0 and self.board[i][j+1] != 0:
+                        if "a" not in possible_moves:
+                            possible_moves.append("a")
+                        break              
 
         for j in range(4):
             for i in range(3):
-                if self.board[i][j] == self.board[i+1][j] and self.board[i][j] != 0:
+                if self.board[i][j] == self.board[i+1][j] and not (self.board[i][j] == 0 and self.board[i+1][j] == 0):
                     if "w" not in possible_moves:
                         possible_moves.append("w")
                         possible_moves.append("s")
                     break
-        if get_moves:
-            return possible_moves
-
+                else:
+                    if self.board[i+1][j] == 0 and self.board[i][j] != 0:
+                        if "s" not in possible_moves:
+                            possible_moves.append("s")
+                        break
+                    elif self.board[i][j] == 0 and self.board[i+1][j] != 0:
+                        if "w" not in possible_moves:
+                            possible_moves.append("w")
+                        break
         if len(possible_moves) > 0:
+            if get_moves:
+                return possible_moves
             return True
         return False
 
