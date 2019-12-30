@@ -8,7 +8,7 @@ def create_board():
     board = np.zeros([4, 4])
     spawn_number(board)
     spawn_number(board)
-    return (board)
+    return board
 
 
 def make_move(board, direction, spawn=True):
@@ -49,11 +49,11 @@ def make_move(board, direction, spawn=True):
 
 
 def rank_board(board):
-    x1 = 1 # weighting of highest cell in corner edge
-    x2 = 1 # weighting on having many free cells
-    x3 = 5 # weighting of having many adjacent moves available
-    x4 = 1 # weighting of second largest on edge
-    x5 = 50 # not monotonic
+    x1 = 40 # weighting of highest cell in corner edge
+    x2 = 20 # weighting on having many free cells
+    #x3 = 1 # weighting of having many adjacent moves available
+    x4 = 5 # weighting of second largest on edge
+    #x5 = 1 # not monotonic
 
 
 
@@ -74,12 +74,11 @@ def rank_board(board):
         if (h[0] == 0 or h[0] == 3 or h[1] == 0 or h[1] ==3):
             z4 = 1
 
-    z5 = get_gradient(board)
+    #z5 = get_gradient(board)
 
 
 
-
-    return (x1*z1 + x2*z2 + x3*z3 + x4*z4 + x5*z5)
+    return (x1*z1 + x2*z2 + x4*z4 + np.max(board))
 
 def new_highest(board, oldboard):
     if(np.amax(board) > np.amax(oldboard)):
@@ -97,7 +96,6 @@ def get_gradient(board):
         for j in range(3):
             if(board[i+1][j] > board[i][j]):
                 deficit -=board[i+1][j]
-
     return(deficit)
 def nhighest(board,x):
     flat = board.flatten()
@@ -358,10 +356,10 @@ if __name__ == "__main__":
         # cls() # comment this out if you want the program to print out everything
         beautify_print(board1)
         depth = 0
-        max_depth = 5
+        max_depth = 500
         final_scores = np.zeros(4)
 
-        for _ in range(200):
+        for _ in range(50):
             newer_board = np.copy(board1)
             l=0
             while moves_available(newer_board) and l < max_depth:
@@ -374,20 +372,18 @@ if __name__ == "__main__":
                 if(l == 0):
                     first_move = move_to_make
                 l+=1
-            if(first_move=="w"):
-                final_scores[0] += rank_board(newer_board)
-            if (first_move == "a"):
-                final_scores[1] += rank_board(newer_board)
-            if (first_move == "s"):
-                final_scores[2] += rank_board(newer_board)
-            if (first_move == "d"):
-                final_scores[3] += rank_board(newer_board)
-        best_move = 10
 
-        for i in range(4):
-            if final_scores[i] == 0:
-                final_scores[i] =- 9999999
-        print(final_scores)
+
+
+        if(first_move=="w"):
+            final_scores[0] += rank_board(newer_board)
+        if (first_move == "a"):
+            final_scores[1] += rank_board(newer_board)
+        if (first_move == "s"):
+            final_scores[2] += rank_board(newer_board)
+        if (first_move == "d"):
+            final_scores[3] += rank_board(newer_board)
+
         best_move = np.argmax(final_scores)
 
         if(best_move == 0):
@@ -397,8 +393,8 @@ if __name__ == "__main__":
         if(best_move==2):
             best_move = "s"
         if(best_move==3):
-
             best_move="d"
+
         print(best_move)
         board1 = make_move(board1, best_move, True)
 
