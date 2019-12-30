@@ -6,7 +6,7 @@ class Board(object):
 
     def __init__(self, board=None, points=0):
         if board is None:
-            self.board = np.zeros([4, 4])
+            self.board = np.zeros([4, 4]).astype(int)
             self.spawn_number()
             self.spawn_number()
         else:
@@ -38,7 +38,7 @@ class Board(object):
 
         for i in range(4):
             for j in range(3):
-                if self.board[i][j] == self.board[i][j+1]:
+                if self.board[i][j] == self.board[i][j+1] and self.board[i][j] != 0:
                     if "a" not in possible_moves:
                         possible_moves.append("a")
                         possible_moves.append("d")
@@ -46,7 +46,7 @@ class Board(object):
 
         for j in range(4):
             for i in range(3):
-                if self.board[i][j] == self.board[i+1][j]:
+                if self.board[i][j] == self.board[i+1][j] and self.board[i][j] != 0:
                     if "w" not in possible_moves:
                         possible_moves.append("w")
                         possible_moves.append("s")

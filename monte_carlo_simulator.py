@@ -42,15 +42,17 @@ if __name__ == "__main__":
 
     board1 = Board()  # Initialise a board
 
+    board1.board = board1.board.astype(int)
     cls()  # using clear function here as it seems that not using it would corrupt the output
 
     print("Board initialised:")
     beautify_print(board1.board)
+
     moves = 0
     while board1.moves_available():
         cls() # comment this out if you want the program to print out everything
         beautify_print(board1.board)
-        depth = 400 # number of games being played
+        depth = 500 # number of games being played
         final_scores = {"w":[0,0], "a":[0,0], "s":[0,0], "d":[0,0],}
         for _ in range(depth):
             newer_board = Board(board1.board, board1.points)
@@ -82,6 +84,9 @@ if __name__ == "__main__":
                 best_score = final_scores[i][0]
                 best_move = i
 
+        with open("board.txt", "a") as file:
+            file.write(str(best_move + "," + str(list(board1.board.flatten())) + "\n"))
+        file.close()
         board1.make_move(best_move)
         moves += 1
 

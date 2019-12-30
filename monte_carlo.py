@@ -5,7 +5,7 @@ from termcolor import colored
 
 
 def create_board():
-    board = np.zeros([4, 4])
+    board = np.zeros([4, 4]).astype(int)
     spawn_number(board)
     spawn_number(board)
     return board
