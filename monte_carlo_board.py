@@ -29,17 +29,14 @@ class Board(object):
         # list containing indexes of 0's
         free_cells = np.where(self.board.reshape(-1) == 0)[0]
 
-        if len(free_cells) > 0 and get_moves is False:
-            if get_moves:
-                if self.board[1][1] == 0 or self.board[1][2] == 0 or self.board[2][1] == 0 or self.board[2][2] == 0:
-                    return ["w","a","s","d"]
+        if len(free_cells) > 0 and not get_moves:
             return True
 
         possible_moves = []
 
         for i in range(4):
             for j in range(3):
-                if self.board[i][j] == self.board[i][j+1] and not (self.board[i][j] == 0 and self.board[i][j+1] == 0):
+                if self.board[i][j] == self.board[i][j+1] and self.board[i][j] != 0:
                     if "a" not in possible_moves:
                         possible_moves.append("a")
                         possible_moves.append("d")
@@ -48,11 +45,9 @@ class Board(object):
                     if self.board[i][j+1] == 0 and self.board[i][j] != 0:
                         if "d" not in possible_moves:
                             possible_moves.append("d")
-                        break
-                    elif self.board[i][j] == 0 and self.board[i][j+1] != 0:
+                    if self.board[i][j] == 0 and self.board[i][j+1] != 0:
                         if "a" not in possible_moves:
-                            possible_moves.append("a")
-                        break              
+                            possible_moves.append("a")              
 
         for j in range(4):
             for i in range(3):
@@ -65,11 +60,10 @@ class Board(object):
                     if self.board[i+1][j] == 0 and self.board[i][j] != 0:
                         if "s" not in possible_moves:
                             possible_moves.append("s")
-                        break
-                    elif self.board[i][j] == 0 and self.board[i+1][j] != 0:
+                    if self.board[i][j] == 0 and self.board[i+1][j] != 0:
                         if "w" not in possible_moves:
                             possible_moves.append("w")
-                        break
+
         if len(possible_moves) > 0:
             if get_moves:
                 return possible_moves
@@ -107,105 +101,135 @@ class Board(object):
             if spawn:
                 self.spawn_number()
 
-    def move_up(self, move=True):
-        alreadymerged = []
-        merge_counter = 0
-
-        for _ in range(3):  # ensures all pieces move as far as they can
-            for i in range(1, 4, 1):
-                for j in range(4):
-                    height = i
-                    while height > 0:  # prevents tiles moving off screen.
-                        if self.board[i - 1][j] == 0 and move:
-                            self.board[i - 1][j] = self.board[i][j]
+    def move_down(self):
+        self.board = self.board.transpose()
+        for i in range(4):
+            for j in range(1,5):
+                if self.board[i][-j] != 0:
+                    if 0 in self.board[i][-j:]:
+                        self.board[i][-j + (self.board[i][-j:] == 0).sum()] = self.board[i][-j]
+                        self.board[i][-j] = 0
+            if self.board[i][0] == self.board[i][1] and self.board[i][2] == self.board[i][3]:
+                self.board[i][3] *= 2
+                self.points += self.board[i][3]
+                self.board[i][2] = self.board[i][1] * 2
+                self.points += self.board[i][2]
+                self.board[i][1] = 0
+                self.board[i][0] = 0
+            else:
+                if self.board[i][1] == self.board[i][2]:
+                    self.board[i][2] *= 2
+                    self.points += self.board[i][2]
+                    self.board[i][1] = 0
+                else:
+                    for j in range(0,3,2):
+                        if self.board[i][j] == self.board[i][j+1]:
+                            self.board[i][j+1] *= 2
+                            self.points += self.board[i][j+1]
                             self.board[i][j] = 0
-                        elif (self.board[i - 1][j] == self.board[i][j] and (
-                                str(i - 1) + "," + str(j)) not in alreadymerged and (
-                                      str(i) + "," + str(j)) not in alreadymerged):
-                            if move:
-                                self.board[i - 1][j] *= 2
-                                self.points += self.board[i - 1][j]
-                                self.board[i][j] = 0
-                                # logs tiles which have merged
-                                alreadymerged.append(str(i - 1) + "," + str(j))
-                                # logs tiles which have merged
-                                alreadymerged.append(str(i) + "," + str(j))
-                            merge_counter += 1
-                        height -= 1
-        return merge_counter
+            for j in range(1,5):
+                if self.board[i][-j] != 0:
+                    if 0 in self.board[i][-j:]:
+                        self.board[i][-j + (self.board[i][-j:] == 0).sum()] = self.board[i][-j]
+                        self.board[i][-j] = 0
+        self.board = self.board.transpose()
 
-    def move_down(self, move=True):
-        merge_counter = 0
-        alreadymerged = []
+    def move_up(self):
+        self.board = self.board.transpose()
+        for i in range(4):
+            for j in range(1,4):
+                if self.board[i][j] != 0:
+                    if 0 in self.board[i][:j]:
+                        self.board[i][j - (self.board[i][:j] == 0).sum()] = self.board[i][j]
+                        self.board[i][j] = 0
+            if self.board[i][0] == self.board[i][1] and self.board[i][2] == self.board[i][3]:
+                self.board[i][0] *= 2
+                self.points += self.board[i][0]
+                self.board[i][1] = self.board[i][2] * 2
+                self.points += self.board[i][1]
+                self.board[i][2] = 0
+                self.board[i][3] = 0
+            else:
+                if self.board[i][1] == self.board[i][2]:
+                    self.board[i][1] *= 2
+                    self.points += self.board[i][1]
+                    self.board[i][2] = 0
+                else:
+                    for j in range(0, 3, 2):
+                        if self.board[i][j] == self.board[i][j+1]:
+                            self.board[i][j] *= 2
+                            self.points += self.board[i][j]
+                            self.board[i][j+1] = 0
+            for j in range(1,4):
+                if self.board[i][j] != 0:
+                    if 0 in self.board[i][:j]:
+                        self.board[i][j - (self.board[i][:j] == 0).sum()] = self.board[i][j]
+                        self.board[i][j] = 0
+        self.board = self.board.transpose()
 
-        for _ in range(3):
-            for i in range(3, -1, -1):
-                for j in range(4):
-                    height = i
-                    while height < 3:
-                        if self.board[i + 1][j] == 0 and move:
-                            self.board[i + 1][j] = self.board[i][j]
+    def move_right(self):
+        for i in range(4):
+            for j in range(1,5):
+                if self.board[i][-j] != 0:
+                    if 0 in self.board[i][-j:]:
+                        self.board[i][-j + (self.board[i][-j:] == 0).sum()] = self.board[i][-j]
+                        self.board[i][-j] = 0
+            if self.board[i][0] == self.board[i][1] and self.board[i][2] == self.board[i][3]:
+                self.board[i][3] *= 2
+                self.points += self.board[i][3]
+                self.board[i][2] = self.board[i][1] * 2
+                self.points += self.board[i][2]
+                self.board[i][1] = 0
+                self.board[i][0] = 0
+            else:
+                if self.board[i][1] == self.board[i][2]:
+                    self.board[i][2] *= 2
+                    self.points += self.board[i][2]
+                    self.board[i][1] = 0
+                else:
+                    for j in range(0,3,2):
+                        if self.board[i][j] == self.board[i][j+1]:
+                            self.board[i][j+1] *= 2
+                            self.points += self.board[i][j+1]
                             self.board[i][j] = 0
-                        elif (self.board[i + 1][j] == self.board[i][j] and (
-                                str(i) + "," + str(j)) not in alreadymerged and (
-                                      str(i + 1) + "," + str(j)) not in alreadymerged):
-                            if move:
-                                self.board[i + 1][j] *= 2
-                                self.points += self.board[i + 1][j]
-                                self.board[i][j] = 0
-                                alreadymerged.append(str(i) + "," + str(j))
-                                alreadymerged.append(str(i + 1) + "," + str(j))
-                            merge_counter += 1
-                        height += 1
-        return merge_counter
+            for j in range(1,5):
+                if self.board[i][-j] != 0:
+                    if 0 in self.board[i][-j:]:
+                        self.board[i][-j + (self.board[i][-j:] == 0).sum()] = self.board[i][-j]
+                        self.board[i][-j] = 0
 
-    def move_left(self, move=True):
-        alreadymerged = []
-        merge_counter = 0
-        for _ in range(3):
-            for i in range(4):
-                for j in range(4):
-                    height = j
-                    while height > 0:
-                        if self.board[i][j - 1] == 0 and move:
-                            self.board[i][j - 1] = self.board[i][j]
-                            self.board[i][j] = 0
-                        elif (self.board[i][j - 1] == self.board[i][j] and (
-                                str(j) + "," + str(i)) not in alreadymerged and (
-                                      str(j - 1) + "," + str(i)) not in alreadymerged):
-                            if move:
-                                self.board[i][j - 1] *= 2
-                                self.points += self.board[i][j - 1]
-                                self.board[i][j] = 0
-                                alreadymerged.append(str(j) + "," + str(i))
-                                alreadymerged.append(str(j - 1) + "," + str(i))
-                            merge_counter += 1
-                        height -= 1
-        return merge_counter
 
-    def move_right(self, move=True):
-        alreadymerged = []
-        merge_counter = 0
-        for _ in range(3):
-            for i in range(4):
-                for j in range(4, -1, -1):
-                    height = j
-                    while height < 3:
-                        if self.board[i][j + 1] == 0:
-                            self.board[i][j + 1] = self.board[i][j]
-                            self.board[i][j] = 0
-                        elif (self.board[i][j + 1] == self.board[i][j] and (
-                                str(j) + "," + str(i)) not in alreadymerged and (
-                                      str(j + 1) + "," + str(i)) not in alreadymerged):
-                            if move:
-                                self.board[i][j + 1] *= 2
-                                self.points += self.board[i][j + 1]
-                                self.board[i][j] = 0
-                                alreadymerged.append(str(j) + "," + str(i))
-                                alreadymerged.append(str(j + 1) + "," + str(i))
-                            merge_counter += 1
-                        height += 1
-        return merge_counter
+    def move_left(self):
+        for i in range(4):
+            for j in range(1,4):
+                if self.board[i][j] != 0:
+                    if 0 in self.board[i][:j]:
+                        self.board[i][j - (self.board[i][:j] == 0).sum()] = self.board[i][j]
+                        self.board[i][j] = 0
+            if self.board[i][0] == self.board[i][1] and self.board[i][2] == self.board[i][3]:
+                self.board[i][0] *= 2
+                self.points += self.board[i][0]
+                self.board[i][1] = self.board[i][2] * 2
+                self.points += self.board[i][1]
+                self.board[i][2] = 0
+                self.board[i][3] = 0
+            else:
+                if self.board[i][1] == self.board[i][2]:
+                    self.board[i][1] *= 2
+                    self.points += self.board[i][1]
+                    self.board[i][2] = 0
+                else:
+                    for j in range(0, 3, 2):
+                        if self.board[i][j] == self.board[i][j+1]:
+                            self.board[i][j] *= 2
+                            self.points += self.board[i][j]
+                            self.board[i][j+1] = 0
+            for j in range(1,4):
+                if self.board[i][j] != 0:
+                    if 0 in self.board[i][:j]:
+                        self.board[i][j - (self.board[i][:j] == 0).sum()] = self.board[i][j]
+                        self.board[i][j] = 0
+
 
     def spawn_number(self, pick_random=True, rand=0, spawn_number=0):
         """
