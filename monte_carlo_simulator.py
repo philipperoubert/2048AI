@@ -87,7 +87,7 @@ if __name__ == "__main__":
                     best_score = final_scores[i][0]
                     best_move = i
 
-            with open("board.txt", "a") as file:
+            with open("dataset.txt", "a") as file:
                 file.write(str(best_move + "," + str(list(board1.board.flatten())) + "\n"))
             file.close()
             board1.make_move(best_move)
