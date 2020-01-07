@@ -24,6 +24,7 @@ target = []
 with open("../dataset.txt", "r") as file:
     for line in file.readlines():
         target.append(line[0])
+        # board.append(np.array(ast.literal_eval(line[2:])).reshape(4, 4).tolist())
         board.append(ast.literal_eval(line[2:]))
 
 train_data = pd.DataFrame(board)  
@@ -37,7 +38,8 @@ INPUT_SHAPE = (4, 4)
 NUM_ACTIONS_OUTPUT_NN = 4 
 INPUT_SHAPE_DNN = (WINDOW_LENGTH, 4+4*4, NUM_ONE_HOT_MAT,) + INPUT_SHAPE
 model = Sequential()
-# model.add(Flatten(input_shape=INPUT_SHAPE_DNN))
+
+# model.add(Flatten(input_shape=(4, 4)))
 model.add(Dense(output_dim=16, activation='relu', input_dim=16))
 # model.add(Dense(units=1024, activation='relu'))
 # model.add(Dense(units=512, activation='relu'))
@@ -47,11 +49,11 @@ model.add(Dense(output_dim=16, activation='relu'))
 model.add(Dense(output_dim=1, activation='linear'))
 print(model.summary())
 
-model.compile(Adam(lr=.00025), metrics=['mse'])
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-model.fit(X_train.values, y_train, batch_size = 10, epochs = 100)
+model.fit(X_train, y_train, batch_size = 10, epochs = 100)
 
-y_pred = model.predict(X_test.values)
+y_pred = model.predict(X_test)
 
 cm = confusion_matrix(y_test, y_pred)
 print(cm)
