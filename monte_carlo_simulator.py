@@ -53,7 +53,7 @@ def simulate_run(board):
 
 if __name__ == "__main__":
 
-    for _ in range(5):
+    for _ in range(999):
 
         board1 = Board()  # Initialise a board
         number_of_processors = 4 # For multiprocessing
