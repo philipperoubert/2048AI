@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['nn\\test.py', 'nn\\nn.py']
+recent_files = ['board.py', 'monte_carlo_board.py', 'monte_carlo_simulator.py', 'nn\\game_helpers.py', 'nn\\nn.py', 'nn\\one_hot.py', 'game.py']
 

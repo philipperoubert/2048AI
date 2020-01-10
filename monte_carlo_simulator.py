@@ -67,12 +67,12 @@ if __name__ == "__main__":
         while board1.moves_available():
             cls() # comment this out if you want the program to print out everything
             beautify_print(board1.board)
-            depth = 500 # number of games being played
+            depth = 1 # number of games being played
             final_scores = {"w":[0,0], "a":[0,0], "s":[0,0], "d":[0,0],}
 
             with Pool(number_of_processors) as p:
                 scores = p.map(simulate_run, [board1] * depth)
-
+            print('scores', scores)
             for score in scores:
                 final_scores[score[0]][0] += score[1]
                 final_scores[score[0]][1] += 1
