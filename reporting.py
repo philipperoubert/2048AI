@@ -58,7 +58,7 @@ def plot_game_reports(data):
     print('==========================================')
     worst_moves, worst_score, worst_time, worst_mean, didWin, worst_highest_tile = df.iloc[df['Score'].idxmin()]
     print('================ Worst ===================')
-    print('Worst score: {}'.format(worst_moves))
+    print('Worst score: {}'.format(worst_score))
     print('Moves: {}'.format(worst_moves))
     print('Time taken: {}'.format(float(worst_time)))
     print('==========================================')
