@@ -5,10 +5,10 @@ import ast
 from ttictoc import TicToc
 import pickle
 from multiprocessing import cpu_count
-from monte_carlo_board import Board
+from board import Board
 from psutil import cpu_count
 from multiprocessing import Pool
-from game_helpers import beautify_print, plot_game_reports
+from reporting import beautify_print, plot_game_reports
 import click
 cpus = cpu_count()
 
