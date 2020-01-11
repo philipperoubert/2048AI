@@ -1,9 +1,13 @@
 from termcolor import colored
 import matplotlib.pyplot as plt
 import pandas as pd
+    
+# =============================================================================
+#     Scores
+# =============================================================================
 
 def plot_table(df):
-    # plt.rcParams["figure.figsize"] = (8, 8)
+    plt.rcParams["figure.figsize"] = (8, 8)
     fig, ax = plt.subplots()
 
     # hide axes
@@ -41,16 +45,16 @@ def calculate_move_direction_percentage(moves, total):
 # print('total', total)
 # print('perc', perc)
         
-def plot_game_reports(data):
-    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time'])    
+def plot_game_reports(data):    
+    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move'])    
     plot_table(df)
-    best_moves, best_score, best_time = df.iloc[df['Score'].argmax()]
+    best_moves, best_score, best_time, best_mean = df.iloc[df['Score'].argmax()]
     print('================ Best ====================')
     print('Best score: {}'.format(best_score))
     print('Moves: {}'.format(best_moves))
     print('Time taken: {}'.format(float(best_time)))
     print('==========================================')
-    worst_moves, worst_score, worst_time = df.iloc[df['Score'].argmin()]
+    worst_moves, worst_score, worst_time, worst_mean = df.iloc[df['Score'].argmin()]
     print('================ Worst ===================')
     print('Worst score: {}'.format(worst_moves))
     print('Moves: {}'.format(worst_moves))
@@ -58,11 +62,7 @@ def plot_game_reports(data):
     print('==========================================')
     print('=============== Number of moves ==========')
     
-    
-# =============================================================================
-#     Scores
-# =============================================================================
-    plt.plot()
+
 
 def beautify_print(board):
     """
