@@ -232,7 +232,7 @@ def start(print_board, transform_dataset, retrain_model, color):
     # n_cpus = cpu_count()
     # pool = Pool(processes = n_cpus)
     # output = pool.map(play, [board, model])
-    n_games = 100
+    n_games = 5
     output = []
     for i in range(0, n_games):
         board = Board()

@@ -74,7 +74,7 @@ def plot_game_reports(data):
     print('Loses: {}'.format(loses))
     print('Percentage loses: {}'.format(str(round(loses / (loses + wins) * 100, 2)) + '%'))
     print('Highest Tile: {}'.format(worst_highest_tile))
-    print('Worst score minimum tile count: {}'.format(df[df['Highest Tile'] == df['Highest Tile'].min()]))
+    print('Worst score minimum tile count: {}'.format(len(df[df['Highest Tile'] == df['Highest Tile'].min()])))
     print('==========================================')  
     
 
