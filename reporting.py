@@ -50,9 +50,9 @@ data = pd.DataFrame([[12], [12], [12], [6], [6], [12], [3], [3]], columns=['scor
 def plot_game_reports(data, save_csv = True, add_csv_suffix = True):    
     df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win', 'Highest Tile'])
     if save_csv:
-        suffix = '_'
+        suffix = ''
         if add_csv_suffix:
-            suffix += str(time.time())
+            suffix += ('_' + str(time.time()))
 
         df.to_csv('./data/game_report{}.csv'.format(suffix), index=False)
     
