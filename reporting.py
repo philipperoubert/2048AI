@@ -1,7 +1,7 @@
 from termcolor import colored
 import matplotlib.pyplot as plt
 import pandas as pd
-    
+import time;
 # =============================================================================
 #     Scores
 # =============================================================================
@@ -46,23 +46,36 @@ def calculate_move_direction_percentage(moves, total):
 # print('perc', perc)
     
 data = pd.DataFrame([[12], [12], [12], [6], [6], [12], [3], [3]], columns=['score'])
-print()
         
-def plot_game_reports(data):    
-    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win', 'Highest Tile'])    
+def plot_game_reports(data, save_csv = True, add_csv_suffix = True):    
+    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win', 'Highest Tile'])
+    if save_csv:
+        suffix = '_'
+        if add_csv_suffix:
+            suffix += str(time.time())
+
+        df.to_csv('./data/game_report{}.csv'.format(suffix), index=False)
+    
+    # Plot table
     plot_table(df)
+    # Score for the best game
     best_moves, best_score, best_time, best_mean, didWin, highest_tile = df.iloc[df['Score'].idxmax()]
     print('================ Best ====================')
     print('Best score: {}'.format(best_score))
     print('Moves: {}'.format(best_moves))
+    total_moves = calculate_moves_total(best_moves)
+    print('Moves percentage: {}'.format(calculate_move_direction_percentage(best_moves, total_moves)))
     print('Time taken: {}'.format(float(best_time)))
     print('Highest tile: {}'.format(highest_tile))
     print('Highest tile reached {} times'.format(len(df[df['Highest Tile'] == df['Highest Tile'].max()])))
     print('==========================================')
     worst_moves, worst_score, worst_time, worst_mean, didWin, worst_highest_tile = df.iloc[df['Score'].idxmin()]
+    # Score for the worst game
     print('================ Worst ===================')
     print('Worst score: {}'.format(worst_score))
     print('Moves: {}'.format(worst_moves))
+    total_moves = calculate_moves_total(worst_moves)
+    print('Moves percentage: {}'.format(calculate_move_direction_percentage(worst_moves, total_moves)))
     print('Time taken: {}'.format(float(worst_time)))
     print('==========================================')
 

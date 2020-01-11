@@ -15,18 +15,6 @@ import sys
 from math import sqrt
 cpus = cpu_count()
 
-scaler = StandardScaler()
-
-rows = [
-[2, 512, 2, 4, 0, 16, 4, 128, 0, 0, 128, 4, 2, 0, 0, 4],
-[0, 2, 0, 0, 0, 0, 2, 4, 0, 512, 4, 128, 4, 16, 128, 8],
-[2, 0, 0, 0, 2, 4, 0, 0, 512, 4, 128, 2, 4, 16, 128, 8],
-[4, 8, 256, 2, 512, 16, 0, 8, 4, 0, 0, 0, 0, 0, 0, 2],
-[4, 8, 256, 2, 512, 16, 0, 8, 4, 0, 2, 2, 0, 0, 0, 0],     
-]
-print(rows)
-print(scaler.fit_transform(rows))
-
 def one_hot_encode(row):
     for i, item in enumerate(row):
         if item > 0:
@@ -41,10 +29,7 @@ def square_root_board(row):
 
 def scale_data(row):
    return square_root_board(row)
-    # return one_hot_encode(row)
 
-print(256^2)
-print(scale_data(rows[0]))
 # sys.exit()
 @click.group()
 def cli():
@@ -111,14 +96,9 @@ def train_model(X_train, y_train):
     model = Sequential()
 
     model.add(Dense(16, activation='relu', input_dim=16))
-    # model.add(Dense(512, activation='relu'))
-    # model.add(Dense(1024, activation='relu'))
-    # model.add(Dense(16, activation='relu'))
-    model.add(Dense(128, activation='relu'))
     model.add(Dense(256, activation='relu'))
     model.add(Dense(512, activation='relu'))
     model.add(Dense(256, activation='relu'))
-    model.add(Dense(128, activation='relu'))
     model.add(Dense(4, activation='softmax'))
     print(model.summary())
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -228,16 +208,12 @@ def start(print_board, transform_dataset, retrain_model, color):
     except:
         model = train_model(X_train, y_train)
    
-    # board1.board = board1.board.astype(int)
-    # n_cpus = cpu_count()
-    # pool = Pool(processes = n_cpus)
-    # output = pool.map(play, [board, model])
     n_games = 5
     output = []
     for i in range(0, n_games):
         board = Board()
         output.append(play(board, model, print_board, color))    
-    plot_game_reports(output)
+    plot_game_reports(output, save_csv = True, add_csv_suffix = False)
 
 if __name__ == "__main__":
 # =============================================================================
