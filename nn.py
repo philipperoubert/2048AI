@@ -18,6 +18,12 @@ def one_hot_encode(row):
             row[i] = 1
     return row
 
+def log_2_board(row):
+    a = np.array(row)
+    b = np.where(a <= 0, 1, a)
+    p = np.log2(b) / np.log(65536)
+    return p
+
 def square_root_board(row):
     for i, item in enumerate(row):
         if item > 0:
@@ -25,7 +31,7 @@ def square_root_board(row):
     return row
 
 def scale_data(row):
-   return square_root_board(row)
+    return log_2_board(row)
 
 @click.group()
 def cli():
@@ -92,9 +98,11 @@ def train_model(X_train, y_train):
     model = Sequential()
 
     model.add(Dense(16, activation='relu', input_dim=16))
+    model.add(Dense(128, activation='relu'))
     model.add(Dense(256, activation='relu'))
     model.add(Dense(512, activation='relu'))
     model.add(Dense(256, activation='relu'))
+    model.add(Dense(128, activation='relu'))
     model.add(Dense(4, activation='softmax'))
     print(model.summary())
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
