@@ -33,11 +33,15 @@ def one_hot_encode(row):
             row[i] = 1
     return row
 
-def scale_data(row):
+def square_root_board(row):
     for i, item in enumerate(row):
         if item > 0:
             row[i] = sqrt(item)
     return row
+
+def scale_data(row):
+   return square_root_board(row)
+    # return one_hot_encode(row)
 
 print(256^2)
 print(scale_data(rows[0]))
@@ -107,6 +111,9 @@ def train_model(X_train, y_train):
     model = Sequential()
 
     model.add(Dense(16, activation='relu', input_dim=16))
+    # model.add(Dense(512, activation='relu'))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dense(16, activation='relu'))
     model.add(Dense(128, activation='relu'))
     model.add(Dense(256, activation='relu'))
     model.add(Dense(512, activation='relu'))
@@ -165,7 +172,9 @@ def play(original_board, model, print_board, color):
             beautify_print(board1.board, color)  
         old_board = np.copy(board1.board)
         for i in range(1,5):
-            predicted_move = model.predict(np.array(scale_data(board1.board.flatten())))
+            board_to_predict = np.array([scale_data(board1.board.flatten())])
+            # print('board to predict', board_to_predict)
+            predicted_move = model.predict(board_to_predict)
             
             move_y = np.argsort(predicted_move[0])[-i]
             predicted_move_key = get_move_by_value(move_y, moves_map)
@@ -213,7 +222,7 @@ def start(print_board, transform_dataset, retrain_model, color):
             json_file = open('model/model.json', 'r')
             loaded_model_json = json_file.read()
             model = model_from_json(loaded_model_json)
-            model.load_weights('model.h5')    
+            model.load_weights('model/model.h5')    
             model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
             print('Saved model loaded')
     except:
@@ -223,7 +232,7 @@ def start(print_board, transform_dataset, retrain_model, color):
     # n_cpus = cpu_count()
     # pool = Pool(processes = n_cpus)
     # output = pool.map(play, [board, model])
-    n_games = 5
+    n_games = 100
     output = []
     for i in range(0, n_games):
         board = Board()
