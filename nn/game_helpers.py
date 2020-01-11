@@ -46,21 +46,29 @@ def calculate_move_direction_percentage(moves, total):
 # print('perc', perc)
         
 def plot_game_reports(data):    
-    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move'])    
+    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win'])    
     plot_table(df)
-    best_moves, best_score, best_time, best_mean = df.iloc[df['Score'].argmax()]
+    best_moves, best_score, best_time, best_mean, didWin = df.iloc[df['Score'].idxmax()]
     print('================ Best ====================')
     print('Best score: {}'.format(best_score))
     print('Moves: {}'.format(best_moves))
     print('Time taken: {}'.format(float(best_time)))
     print('==========================================')
-    worst_moves, worst_score, worst_time, worst_mean = df.iloc[df['Score'].argmin()]
+    worst_moves, worst_score, worst_time, worst_mean, didWin = df.iloc[df['Score'].idxmin()]
     print('================ Worst ===================')
     print('Worst score: {}'.format(worst_moves))
     print('Moves: {}'.format(worst_moves))
     print('Time taken: {}'.format(float(worst_time)))
     print('==========================================')
-    print('=============== Number of moves ==========')
+
+    wins = len(df.loc[df['Did Win'] == True])
+    loses = len(df.loc[df['Did Win'] == False])
+    print('Total games: {}'.format(len(data)))
+    print('Wins: {}'.format(wins))   
+    print('Percentage wins: {}'.format(str(round(didWin / (loses + wins) * 100, 2)) + '%'))
+    print('Loses: {}'.format(loses))
+    print('Percentage loses: {}'.format(str(round(loses / (loses + wins) * 100, 2)) + '%'))
+    print('==========================================')  
     
 
 

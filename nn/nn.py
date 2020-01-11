@@ -56,11 +56,6 @@ def prepare_y(direction):
     
     return np.array([target_row])
 
-def get_move_by_value(value, moves_map):
-    for key, index in moves_map.items():
-        if index == value:
-            return key
-
 def load_and_transform_data(path = "../dataset.txt"):
     isFirstLine = True
     with open(path, "r") as file:        
@@ -78,7 +73,7 @@ def load_and_transform_data(path = "../dataset.txt"):
     return X_train, y_train
         
 def load_transformed_data():
-    return pickle.load(open('./data/transformed_dataset.pickle', 'rb'))
+    pickle.load(open('./data/transformed_dataset.pickle'))
 
 # =============================================================================
 # Load transformed dataset or transform the original one
@@ -102,12 +97,12 @@ def train_model(X_train, y_train):
     model = Sequential()
 
     model.add(Dense(16, activation='relu', input_dim=16))
-    model.add(Dense(16))
-    # model.add(Dense(128, activation='relu'))
-    # model.add(Dense(256, activation='relu'))
-    # model.add(Dense(512, activation='relu'))
-    # model.add(Dense(256, activation='relu'))
-    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(16))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dense(512, activation='relu'))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dense(128, activation='relu'))
     model.add(Dense(4))
     print(model.summary())
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -170,13 +165,13 @@ def play(original_board, model):
     # Play the game as long as we have available moves
     while available_moves:
         t.tic()  
-        beautify_print(board1.board)  
+        # beautify_print(board1.board)  
         old_board = np.copy(board1.board)
         for i in range(1,5):
             predicted_move = model.predict(np.array([board1.board.flatten()]))
-            print('predicted_move', predicted_move)
+            # print('predicted_move', predicted_move)
             move_y = np.argsort(predicted_move[0])[-i]
-            print('move_y', move_y, np.argsort(predicted_move[0]))
+            # print('move_y', move_y, np.argsort(predicted_move[0]))
             predicted_move_key = get_move_by_value(move_y, moves_map)
             board1.make_move(predicted_move_key)
             moves[predicted_move_key] += 1
@@ -192,31 +187,25 @@ def play(original_board, model):
     score = board1.points
     t_game.toc()
     game_duration = t_game.elapsed
-    print('move time', move_time)
-    return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2))
+    didWin = np.max(board1.board) >= 2048
+    return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin)
 
 
 if __name__ == "__main__":
     n_cpus = cpu_count()
     # print('n_cpus', n_cpus)
-    # n_games = 5
+    n_games = 5
    
     # board1.board = board1.board.astype(int)
     # pool = Pool(processes = n_cpus)
     output = []
     # output = pool.map(play, [board1])
-    for i in range(0, 5):
+    for i in range(0, n_games):
         board = Board()
         output.append(play(board, model))
     # output = play(board, model)
     print(output)
-
     
-    
-# =============================================================================
-# Plot stats
-# =============================================================================
-# data = [(179, 1988, 0.4059131145477295), (117, 1172, 0.28848719596862793), (82, 592, 0.1765296459197998), (146, 1408, 0.49370384216308594), (69, 412, 0.17749881744384766)]
     plot_game_reports(output)
    
     
