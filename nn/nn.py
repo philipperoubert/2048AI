@@ -28,10 +28,6 @@ import tflearn
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.estimator import regression
 
-# config = tf.ConfigProto(device_count = {'GPU': 1, 'CPU': cpus}, log_device_placement=True)
-# session = tf.Session(config)
-# keras.backend.set_session(session)
-
 le = LabelEncoder()
 
 # =============================================================================
@@ -58,26 +54,36 @@ def prepare_y(direction):
 
 def load_and_transform_data(path = "../dataset.txt"):
     isFirstLine = True
-    with open(path, "r") as file:        
-        for line in file.readlines():
-            line = line.replace("\n", "")
-            
-            if isFirstLine:
-                X_train = np.array([ast.literal_eval(line[2:])])
-                y_train = np.array(prepare_y(line[0]))
-                isFirstLine = False
-            else:
-                X_train = np.append(X_train, [ast.literal_eval(line[2:])], axis=0)
-                y_train = np.append(y_train, prepare_y(line[0]), axis=0)
+    try:
+        with open(path, "r") as file:        
+            for line in file.readlines():
+                # Skip an empty line
+                if len(line) == 0:
+                    continue
+                
+                # Remove break line
+                line = line.replace("\n", "")
+                
+                # On the first 
+                if isFirstLine:
+                    X_train = np.array([ast.literal_eval(line[2:])])
+                    y_train = np.array(prepare_y(line[0]))
+                    isFirstLine = False
+                else:
+                    X_train = np.append(X_train, [ast.literal_eval(line[2:])], axis=0)
+                    y_train = np.append(y_train, prepare_y(line[0]), axis=0)
+    except Exception as e:
+        print('exception', e)
     pickle.dump((X_train, y_train), open('./data/transformed_dataset.pickle', 'wb'))
     return X_train, y_train
         
 def load_transformed_data():
-    pickle.load(open('./data/transformed_dataset.pickle'))
+    pickle.load(open('./data/transformed_dataset.pickle', 'r'))
 
 # =============================================================================
 # Load transformed dataset or transform the original one
 # =============================================================================
+    
 try:
     print('Trying to load transformed dataset')
     X_train, y_train = load_transformed_data()
@@ -85,7 +91,6 @@ try:
 except Exception:
     print('Could not load transformed data. Transforming original dataset')
     X_train, y_train = load_and_transform_data()
-
 
 # X_train, X_test, y_train, y_test= train_test_split(X_train, y_train, test_size = 0.2, random_state = 0)
 
