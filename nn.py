@@ -9,9 +9,39 @@ from board import Board
 from psutil import cpu_count
 from multiprocessing import Pool
 from reporting import beautify_print, plot_game_reports
+from sklearn.preprocessing import StandardScaler
 import click
+import sys
+from math import sqrt
 cpus = cpu_count()
 
+scaler = StandardScaler()
+
+rows = [
+[2, 512, 2, 4, 0, 16, 4, 128, 0, 0, 128, 4, 2, 0, 0, 4],
+[0, 2, 0, 0, 0, 0, 2, 4, 0, 512, 4, 128, 4, 16, 128, 8],
+[2, 0, 0, 0, 2, 4, 0, 0, 512, 4, 128, 2, 4, 16, 128, 8],
+[4, 8, 256, 2, 512, 16, 0, 8, 4, 0, 0, 0, 0, 0, 0, 2],
+[4, 8, 256, 2, 512, 16, 0, 8, 4, 0, 2, 2, 0, 0, 0, 0],     
+]
+print(rows)
+print(scaler.fit_transform(rows))
+
+def one_hot_encode(row):
+    for i, item in enumerate(row):
+        if item > 0:
+            row[i] = 1
+    return row
+
+def scale_data(row):
+    for i, item in enumerate(row):
+        if item > 0:
+            row[i] = sqrt(item)
+    return row
+
+print(256^2)
+print(scale_data(rows[0]))
+# sys.exit()
 @click.group()
 def cli():
     pass
@@ -37,6 +67,9 @@ def prepare_y(direction):
 
 def load_and_transform_data(path = "dataset.txt"):
     isFirstLine = True
+    
+              
+    
     try:
         with open(path, "r") as file:        
             for line in file.readlines():
@@ -49,15 +82,17 @@ def load_and_transform_data(path = "dataset.txt"):
                 
                 # On the first 
                 if isFirstLine:
-                    X_train = np.array([ast.literal_eval(line[2:])])
+                    X_train = np.array([scale_data(ast.literal_eval(line[2:]))])
                     y_train = np.array(prepare_y(line[0]))
                     isFirstLine = False
                 else:
-                    X_train = np.append(X_train, [ast.literal_eval(line[2:])], axis=0)
+                    X_train = np.append(X_train, [scale_data(ast.literal_eval(line[2:]))], axis=0)
                     y_train = np.append(y_train, prepare_y(line[0]), axis=0)
     except:
         pass
     pickle.dump((X_train, y_train), open('./data/transformed_dataset.pickle', 'wb'))
+    scaler = StandardScaler()
+    # return scaler.fit_transform(X_train), y_train
     return X_train, y_train
         
 def load_transformed_data():
@@ -77,7 +112,7 @@ def train_model(X_train, y_train):
     model.add(Dense(512, activation='relu'))
     model.add(Dense(256, activation='relu'))
     model.add(Dense(128, activation='relu'))
-    model.add(Dense(4))
+    model.add(Dense(4, activation='softmax'))
     print(model.summary())
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -118,6 +153,7 @@ def play(original_board, model, print_board):
         's': 0,
         'd': 0
     }
+    print('GAME ========================================')
     
     # Get initial available moves
     available_moves = board1.moves_available(board1)
@@ -130,7 +166,8 @@ def play(original_board, model, print_board):
             beautify_print(board1.board)  
         old_board = np.copy(board1.board)
         for i in range(1,5):
-            predicted_move = model.predict(np.array([board1.board.flatten()]))
+            predicted_move = model.predict(np.array([scale_data(board1.board.flatten())]))
+            
             move_y = np.argsort(predicted_move[0])[-i]
             predicted_move_key = get_move_by_value(move_y, moves_map)
             board1.make_move(predicted_move_key)
@@ -151,7 +188,7 @@ def play(original_board, model, print_board):
     return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin, highest_tile)
 
 @cli.command('start')
-@click.option('--print_board', default='True')
+@click.option('--print_board', default='False')
 @click.option('--transform_dataset', default='False')
 @click.option('--retrain_model', default='False')
 def start(print_board, transform_dataset, retrain_model):
@@ -221,6 +258,7 @@ if __name__ == "__main__":
 # =============================================================================
     # cli()   
     start()
+    pass
    
     
     
