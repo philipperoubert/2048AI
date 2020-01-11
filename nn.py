@@ -6,12 +6,9 @@ from ttictoc import TicToc
 import pickle
 from multiprocessing import cpu_count
 from board import Board
-from psutil import cpu_count
-from multiprocessing import Pool
 from reporting import beautify_print, plot_game_reports
 from sklearn.preprocessing import StandardScaler
 import click
-import sys
 from math import sqrt
 cpus = cpu_count()
 
@@ -30,7 +27,6 @@ def square_root_board(row):
 def scale_data(row):
    return square_root_board(row)
 
-# sys.exit()
 @click.group()
 def cli():
     pass
