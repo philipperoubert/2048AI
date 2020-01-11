@@ -26,9 +26,6 @@ moves_map = {
     'd': 3
 }
 
-# board = []
-# target = []
-
 def prepare_y(direction):
     move = moves_map[direction]
     target_row = np.zeros(4)
@@ -81,7 +78,7 @@ def train_model(X_train, y_train):
     model.add(Dense(256, activation='relu'))
     model.add(Dense(128, activation='relu'))
     model.add(Dense(4))
-    # print(model.summary())
+    print(model.summary())
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     model.fit(X_train, y_train, batch_size = 100, epochs = 100)
@@ -154,7 +151,7 @@ def play(original_board, model, print_board):
     return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin, highest_tile)
 
 @cli.command('start')
-@click.option('--print_board', default='False')
+@click.option('--print_board', default='True')
 @click.option('--transform_dataset', default='False')
 @click.option('--retrain_model', default='False')
 def start(print_board, transform_dataset, retrain_model):
