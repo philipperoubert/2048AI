@@ -103,7 +103,7 @@ def get_move_by_value(move, moves_map):
         if move == value:
             return key
 
-def play(original_board, model, print_board):
+def play(original_board, model, print_board, color):
     # Initialise the board
     board1 = Board(original_board.board, original_board.points)
     
@@ -127,7 +127,7 @@ def play(original_board, model, print_board):
     while available_moves:
         t.tic()  
         if print_board == 'True':
-            beautify_print(board1.board)  
+            beautify_print(board1.board, color)  
         old_board = np.copy(board1.board)
         for i in range(1,5):
             predicted_move = model.predict(np.array([board1.board.flatten()]))
@@ -154,7 +154,8 @@ def play(original_board, model, print_board):
 @click.option('--print_board', default='True')
 @click.option('--transform_dataset', default='False')
 @click.option('--retrain_model', default='False')
-def start(print_board, transform_dataset, retrain_model):
+@click.option('--color', default='True')
+def start(print_board, transform_dataset, retrain_model, color):
 # =============================================================================
 # Load transformed dataset or transform the original one
 # ============================================================================= 
@@ -190,7 +191,7 @@ def start(print_board, transform_dataset, retrain_model):
     output = []
     for i in range(0, n_games):
         board = Board()
-        output.append(play(board, model, print_board))    
+        output.append(play(board, model, print_board, color))    
     plot_game_reports(output)
 
 if __name__ == "__main__":
@@ -217,6 +218,12 @@ if __name__ == "__main__":
 #   
 #   Specifies if the model should be compiled and fit with the dataset 
 #   By default it will try to use a cached model and fallbacks to creating a new one
+#
+# --color True|False
+#
+#   For Window's CMD that do not work well with color printing. True turns it on,
+#   False turns it off. Default is True.
+#
 #
 # =============================================================================
     # cli()   
