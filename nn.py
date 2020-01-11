@@ -153,7 +153,6 @@ def play(original_board, model, print_board, color):
         's': 0,
         'd': 0
     }
-    print('GAME ========================================')
     
     # Get initial available moves
     available_moves = board1.moves_available(board1)
@@ -166,7 +165,7 @@ def play(original_board, model, print_board, color):
             beautify_print(board1.board, color)  
         old_board = np.copy(board1.board)
         for i in range(1,5):
-            predicted_move = model.predict(np.array([scale_data(board1.board.flatten())]))
+            predicted_move = model.predict(np.array(scale_data(board1.board.flatten())))
             
             move_y = np.argsort(predicted_move[0])[-i]
             predicted_move_key = get_move_by_value(move_y, moves_map)
