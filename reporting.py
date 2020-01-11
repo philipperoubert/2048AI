@@ -58,7 +58,7 @@ def plot_game_reports(data):
     print('==========================================')
     worst_moves, worst_score, worst_time, worst_mean, didWin, worst_highest_tile = df.iloc[df['Score'].idxmin()]
     print('================ Worst ===================')
-    print('Worst score: {}'.format(worst_moves))
+    print('Worst score: {}'.format(worst_score))
     print('Moves: {}'.format(worst_moves))
     print('Time taken: {}'.format(float(worst_time)))
     print('==========================================')
@@ -76,7 +76,7 @@ def plot_game_reports(data):
     
 
 
-def beautify_print(board):
+def beautify_print(board, color=True):
     """
     Prints the board in a prettier way.
     params:
@@ -90,13 +90,20 @@ def beautify_print(board):
         print("|", end=" ")
         for j in range(3):
             try:
-                print(
-                    colored(str(int(board[i][j])), color_dict[int(board[i][j])]), end=" | ")
-            except:
+                if color == 'True':
+                    print(
+                        colored(str(int(board[i][j])), color_dict[int(board[i][j])]), end=" | ")
+                else:
+                    print(str(int(board[i][j])), end=" | ")
+            except Exception as e:
+                print(e)
                 print(board[i][j], end=" | ")
         try:
-            print(colored(str(int(board[i][3])),
-                          color_dict[int(board[i][3])]), end=" |\n")
+            if color is 'True':
+                print(colored(str(int(board[i][3])),
+                              color_dict[int(board[i][3])]), end=" |\n")
+            else:
+                print(str(int(board[i][3])) , end=" |\n")
         except:
             print(board[i][3], end=" |\n")
         print("==================")
