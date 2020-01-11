@@ -1,34 +1,20 @@
-import pandas as pd
 import numpy as np
-import keras
-import random
 from keras.models import Sequential, model_from_json
-from keras.layers import Dense, Flatten
-from keras.optimizers import Adam
-from keras.datasets import mnist
-from keras import models
-from keras import layers
-from keras.utils import to_categorical
+from keras.layers import Dense
 import ast
-from sklearn.metrics import plot_confusion_matrix, confusion_matrix, accuracy_score
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder, StandardScaler
 from ttictoc import TicToc
 import pickle
 from multiprocessing import cpu_count
-cpus = cpu_count()
-import tensorflow as tf
 from monte_carlo_board import Board
 from psutil import cpu_count
 from multiprocessing import Pool
-from game_helpers import beautify_print, get_scores, plot_game_reports, plot_table
-import matplotlib.pyplot as plt
+from game_helpers import beautify_print, plot_game_reports
+import click
+cpus = cpu_count()
 
-import tflearn
-from tflearn.layers.core import input_data, dropout, fully_connected
-from tflearn.layers.estimator import regression
-
-le = LabelEncoder()
+@click.group()
+def cli():
+    pass
 
 # =============================================================================
 # Prepare data
@@ -40,8 +26,8 @@ moves_map = {
     'd': 3
 }
 
-board = []
-target = []
+# board = []
+# target = []
 
 def prepare_y(direction):
     move = moves_map[direction]
@@ -52,7 +38,7 @@ def prepare_y(direction):
     
     return np.array([target_row])
 
-def load_and_transform_data(path = "../dataset.txt"):
+def load_and_transform_data(path = "dataset.txt"):
     isFirstLine = True
     try:
         with open(path, "r") as file:        
@@ -72,44 +58,30 @@ def load_and_transform_data(path = "../dataset.txt"):
                 else:
                     X_train = np.append(X_train, [ast.literal_eval(line[2:])], axis=0)
                     y_train = np.append(y_train, prepare_y(line[0]), axis=0)
-    except Exception as e:
-        print('exception', e)
+    except:
+        pass
     pickle.dump((X_train, y_train), open('./data/transformed_dataset.pickle', 'wb'))
     return X_train, y_train
         
 def load_transformed_data():
-    pickle.load(open('./data/transformed_dataset.pickle', 'r'))
-
-# =============================================================================
-# Load transformed dataset or transform the original one
-# =============================================================================
-    
-try:
-    print('Trying to load transformed dataset')
-    X_train, y_train = load_transformed_data()
-    print('Transformed dataset loaded')
-except Exception:
-    print('Could not load transformed data. Transforming original dataset')
-    X_train, y_train = load_and_transform_data()
-
-# X_train, X_test, y_train, y_test= train_test_split(X_train, y_train, test_size = 0.2, random_state = 0)
+    return pickle.load(open('./data/transformed_dataset.pickle', 'r'))
 
 # =============================================================================
 # Train model
 # =============================================================================
 
-def train_model(X_train, y_train):
+def train_model(X_train, y_train):    
+    print('Training new model')
     model = Sequential()
 
     model.add(Dense(16, activation='relu', input_dim=16))
-    # model.add(Dense(16))
     model.add(Dense(128, activation='relu'))
     model.add(Dense(256, activation='relu'))
     model.add(Dense(512, activation='relu'))
     model.add(Dense(256, activation='relu'))
     model.add(Dense(128, activation='relu'))
     model.add(Dense(4))
-    print(model.summary())
+    # print(model.summary())
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     model.fit(X_train, y_train, batch_size = 100, epochs = 100)
@@ -119,24 +91,11 @@ def train_model(X_train, y_train):
    
     # Save model
     model_json = model.to_json()
-    with open("model.json", "w") as json_file:
+    with open("model/model.json", "w") as json_file:
         json_file.write(model_json)
-    model.save_weights("model.h5")
+    model.save_weights("model/model.h5")
     print("Saved model to disk")
     return model  
-
-try:
-    print('Trying to load a model')
-    json_file = open('model.json', 'r')
-    loaded_model_json = json_file.read()
-    model = model_from_json(loaded_model_json)
-    model.load_weights('model.h5')    
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    print('Saved model loaded')
-except:
-    print('Training new model')
-    model = train_model(X_train, y_train)
-
 
 # =============================================================================
 # Play the game and predict moves
@@ -147,7 +106,7 @@ def get_move_by_value(move, moves_map):
         if move == value:
             return key
 
-def play(original_board, model):
+def play(original_board, model, print_board):
     # Initialise the board
     board1 = Board(original_board.board, original_board.points)
     
@@ -170,20 +129,18 @@ def play(original_board, model):
     # Play the game as long as we have available moves
     while available_moves:
         t.tic()  
-        # beautify_print(board1.board)  
+        if print_board == 'True':
+            beautify_print(board1.board)  
         old_board = np.copy(board1.board)
         for i in range(1,5):
             predicted_move = model.predict(np.array([board1.board.flatten()]))
-            # print('predicted_move', predicted_move)
             move_y = np.argsort(predicted_move[0])[-i]
-            # print('move_y', move_y, np.argsort(predicted_move[0]))
             predicted_move_key = get_move_by_value(move_y, moves_map)
             board1.make_move(predicted_move_key)
             moves[predicted_move_key] += 1
             if not np.array_equal(board1.board, old_board):
                 break
       
-        
         # Get available moves for the next round
         available_moves = board1.moves_available(board1)
         # Add time duration of the move
@@ -192,26 +149,81 @@ def play(original_board, model):
     score = board1.points
     t_game.toc()
     game_duration = t_game.elapsed
-    didWin = np.max(board1.board) >= 2048
-    return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin)
+    highest_tile = np.max(board1.board)
+    didWin = highest_tile >= 2048
+    return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin, highest_tile)
 
-
-if __name__ == "__main__":
-    n_cpus = cpu_count()
-    # print('n_cpus', n_cpus)
-    n_games = 5
+@cli.command('start')
+@click.option('--print_board', default='False')
+@click.option('--transform_dataset', default='False')
+@click.option('--retrain_model', default='False')
+def start(print_board, transform_dataset, retrain_model):
+# =============================================================================
+# Load transformed dataset or transform the original one
+# ============================================================================= 
+    try:
+        print('Trying to load transformed dataset')
+        X_train, y_train = load_transformed_data() if transform_dataset == 'True' else load_and_transform_data()
+        print('Transformed dataset loaded')
+    except Exception:
+        print('Could not load transformed data. Transforming original dataset')
+        X_train, y_train = load_and_transform_data()
+# =============================================================================
+# Load Keras model or train a new one
+# =============================================================================
+    try:
+        if retrain_model == 'True':
+            model = train_model(X_train, y_train)
+        else:
+            print('Trying to load a model')
+            json_file = open('model/model.json', 'r')
+            loaded_model_json = json_file.read()
+            model = model_from_json(loaded_model_json)
+            model.load_weights('model.h5')    
+            model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+            print('Saved model loaded')
+    except:
+        model = train_model(X_train, y_train)
    
     # board1.board = board1.board.astype(int)
+    # n_cpus = cpu_count()
     # pool = Pool(processes = n_cpus)
+    # output = pool.map(play, [board, model])
+    n_games = 5
     output = []
-    # output = pool.map(play, [board1])
     for i in range(0, n_games):
         board = Board()
-        output.append(play(board, model))
-    # output = play(board, model)
-    print(output)
-    
+        output.append(play(board, model, print_board))    
     plot_game_reports(output)
+
+if __name__ == "__main__":
+# =============================================================================
+# To run this file from command line then comment out 'start()'
+# To run this file from an IDE like Spyder then comment out 'cli()'
+#
+# If you have problems running the cli version you might want to use Anaconda prompt
+# or make sure you have installed corect packages.
+#
+# *******
+# cli args
+#
+# --print_board True|False
+#
+#   Specifies if the board should be printed while it is being played    
+#    
+# --transform_dataset True|False
+# 
+#   If set to False then cached transformed dataset will be loaded
+#   Fallbacks to creating a new dataset
+#
+# --retrain_model True|False
+#   
+#   Specifies if the model should be compiled and fit with the dataset 
+#   By default it will try to use a cached model and fallbacks to creating a new one
+#
+# =============================================================================
+    # cli()   
+    start()
    
     
     

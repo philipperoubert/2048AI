@@ -7,15 +7,16 @@ import pandas as pd
 # =============================================================================
 
 def plot_table(df):
-    plt.rcParams["figure.figsize"] = (8, 8)
+    plt.rcParams["figure.figsize"] = (12, 12)
     fig, ax = plt.subplots()
 
     # hide axes
     fig.patch.set_visible(False)
     ax.axis('off')
     ax.axis('tight')
-    ax.table(cellText=df.values, colLabels=df.columns, loc='center', cellLoc='center'
+    table = ax.table(cellText=df.values, colLabels=df.columns, loc='center', cellLoc='center'
 )
+    table.set_fontsize(24)
     fig.tight_layout()
     plt.show()
 
@@ -23,7 +24,6 @@ def plot_table(df):
 def calculate_moves_total(moves):
     total = 0
     for direction, value in moves.items():
-        print('move', direction, value)
         total += value
     return total
 
@@ -46,15 +46,17 @@ def calculate_move_direction_percentage(moves, total):
 # print('perc', perc)
         
 def plot_game_reports(data):    
-    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win'])    
+    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win', 'Highest tile'])    
     plot_table(df)
-    best_moves, best_score, best_time, best_mean, didWin = df.iloc[df['Score'].idxmax()]
+    best_moves, best_score, best_time, best_mean, didWin, highest_tile = df.iloc[df['Score'].idxmax()]
     print('================ Best ====================')
     print('Best score: {}'.format(best_score))
     print('Moves: {}'.format(best_moves))
     print('Time taken: {}'.format(float(best_time)))
+    print('Highest tile: {}'.format(highest_tile))
+    print('Highest tile reached {} times'.format(df['Highest tile'].idxmax(axis=0)))
     print('==========================================')
-    worst_moves, worst_score, worst_time, worst_mean, didWin = df.iloc[df['Score'].idxmin()]
+    worst_moves, worst_score, worst_time, worst_mean, didWin, worst_highest_tile = df.iloc[df['Score'].idxmin()]
     print('================ Worst ===================')
     print('Worst score: {}'.format(worst_moves))
     print('Moves: {}'.format(worst_moves))
@@ -68,6 +70,8 @@ def plot_game_reports(data):
     print('Percentage wins: {}'.format(str(round(didWin / (loses + wins) * 100, 2)) + '%'))
     print('Loses: {}'.format(loses))
     print('Percentage loses: {}'.format(str(round(loses / (loses + wins) * 100, 2)) + '%'))
+    print('Highest tile: {}'.format(worst_highest_tile))
+    print('Worst score minimum tile count: {}'.format(df['Highest tile'].idxmin(axis=0)))
     print('==========================================')  
     
 
