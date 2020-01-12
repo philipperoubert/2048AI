@@ -40,14 +40,14 @@ def calculate_move_direction_percentage(moves, total):
         percentage.append((direction, str(round(value / total, 2)) + '%'))
     return percentage
  
-def plot_game_reports(data, save_csv = True, add_csv_suffix = True):    
+def plot_game_reports(data, save_csv = True, add_csv_suffix = True, csv_filename = './data/game_report{}.csv'):    
     df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win', 'Highest Tile'])
     if save_csv:
         suffix = ''
         if add_csv_suffix:
             suffix += ('_' + str(time.time()))
 
-        df.to_csv('./data/game_report{}.csv'.format(suffix), index=False)
+        df.to_csv(csv_filename.format(suffix), index=False)
     
     # Plot table
     plot_table(df)
