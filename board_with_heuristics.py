@@ -50,27 +50,25 @@ class Board(object):
 
         self.points = self.rank_board()
 
-
     def rank_board(self):
         """
-        Uses Heuristics to rank the quality of the board. 
-        
+        Uses Heuristics to rank the quality of the board.
+
         returns:
-            
+
             float: returns the output of the evaluation functin.
-        
-        
+
+
         """
-        
 
-        x1 = 100 #weighting of highest cell being in top left
-        x2 = -2 #weighting on having many free cells
-        x3 = 5 #weighting of having many adjacent moves available
-        x4 = 75 #weighting of second highest cell being next to highest
-        x5 = 1  #weighting of achiving a good score
-        #x6 = 200 #weighting of merging the third largest cells
+        x1 = 100  # weighting of highest cell being in top left
+        x2 = -2  # weighting on having many free cells
+        x3 = 5  # weighting of having many adjacent moves available
+        x4 = 75  # weighting of second highest cell being next to highest
+        x5 = 1  # weighting of achiving a good score
+        # x6 = 200 #weighting of merging the third largest cells
 
-        z1=0
+        z1 = 0
         i, j = self.argmax2d()
         if (self.in_corner(i, j)):
             z1 = 1
@@ -86,26 +84,40 @@ class Board(object):
             if (h[0] == 1 and h[1] == 0):
                 z4 = 1
 
-        return (x1*z1 + x3*z3 + x4*z4 + x5*z5 + x2*z2)
+        return (x1 * z1 + x3 * z3 + x4 * z4 + x5 * z5 + x2 * z2)
 
     def second_highest(self):
+        """
+        Returns the value of the second highest tile
+        
+        """
         flat = self.board.flatten()
         flat.sort()
         return (flat[-2])
 
     def third_highest(self):
+        """
+        Returns the value of the third highest tile 
+        """
         flat = self.board.flatten()
         flat.sort()
         return (flat[-3])
 
     def get_number_adjacent(self):
+        """
+        Returns the number of merges available at each board state 
+        """
         number_adjacent = 0
         number_adjacent += self.move_up(False)
         number_adjacent += self.move_left(False)
-        return(number_adjacent)
-
+        return (number_adjacent)
 
     def move_up(self, move=True):
+        """
+        Slides all tiles up
+        param move: Whether the board should actually be moved or if it is a test run. 
+        
+        """
         alreadymerged = []
         merge_counter = 0
         self.points = 0
@@ -125,7 +137,7 @@ class Board(object):
 
                                 self.board[i - 1][j] *= 2
                                 if (self.board[i][j] == self.third_highest()):
-                                    self.points+=100
+                                    self.points += 100
                                 self.points += self.board[i - 1][j]
                                 self.board[i][j] = 0
 
@@ -139,6 +151,12 @@ class Board(object):
         return merge_counter
 
     def move_down(self, move=True):
+
+        """
+                Slides all tiles down
+                param move: Whether the board should actually be moved or if it is a test run. 
+
+                """
         merge_counter = 0
         alreadymerged = []
         self.points = 0
@@ -167,6 +185,11 @@ class Board(object):
         return merge_counter
 
     def move_left(self, move=True):
+        """
+                Slides all tiles left
+                param move: Whether the board should actually be moved or if it is a test run. 
+
+                """
         alreadymerged = []
         merge_counter = 0
         self.points = 0
@@ -197,6 +220,12 @@ class Board(object):
         return merge_counter
 
     def move_right(self, move=True):
+
+        """
+                Slides all tiles right
+                param move: Whether the board should actually be moved or if it is a test run. 
+
+                """
         alreadymerged = []
         merge_counter = 0
         self.points = 0
@@ -259,6 +288,9 @@ class Board(object):
             return (False)
 
     def argmax2d(self):
+        """
+        Returns the co-ordinates of the highest tile. 
+        """
         n, m = self.board.shape
         x_ = np.ravel(self.board)
         k = np.argmax(x_)
