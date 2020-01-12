@@ -32,7 +32,7 @@ def square_root_board(row):
     return row
 
 def scale_data(row, feature_scaler):
-    if feature_scaler == 'log2':
+    if feature_scaler == 'log_2':
         return log_2_board(row)
     elif feature_scaler == 'one_hot':
         return one_hot_encode(row)
