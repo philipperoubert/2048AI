@@ -1,6 +1,6 @@
 import numpy as np
 from keras.models import Sequential, model_from_json
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 import ast
 from ttictoc import TicToc
 import pickle
@@ -31,7 +31,8 @@ def square_root_board(row):
     return row
 
 def scale_data(row):
-    return log_2_board(row)
+    # return log_2_board(row)
+    return square_root_board(row)
 
 @click.group()
 def cli():
@@ -99,15 +100,19 @@ def train_model(X_train, y_train):
 
     model.add(Dense(16, activation='relu', input_dim=16))
     model.add(Dense(128, activation='relu'))
-    model.add(Dense(256, activation='relu'))
-    model.add(Dense(512, activation='relu'))
-    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.1))
+    model.add(Dense(256, activation='relu'))    
+    model.add(Dropout(0.1))
+    model.add(Dense(512, activation='relu'))    
+    model.add(Dropout(0.1))
+    model.add(Dense(256, activation='relu'))    
+    model.add(Dropout(0.1))
     model.add(Dense(128, activation='relu'))
     model.add(Dense(4, activation='softmax'))
     print(model.summary())
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    model.fit(X_train, y_train, batch_size = 100, epochs = 100)
+    model.fit(X_train, y_train, batch_size = 100, epochs = 80)
     
     scores = model.evaluate(X_train, y_train, verbose=0)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
@@ -180,9 +185,13 @@ def play(original_board, model, print_board, color):
     return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin, highest_tile)
 
 @cli.command('start')
+# True|False
 @click.option('--print_board', default='False')
+# True|False
 @click.option('--transform_dataset', default='False')
+# True|False
 @click.option('--retrain_model', default='False')
+# True|False
 @click.option('--color', default='True')
 def start(print_board, transform_dataset, retrain_model, color):
 # =============================================================================
@@ -217,7 +226,7 @@ def start(print_board, transform_dataset, retrain_model, color):
     for i in range(0, n_games):
         board = Board()
         output.append(play(board, model, print_board, color))    
-    plot_game_reports(output, save_csv = True, add_csv_suffix = False)
+    plot_game_reports(output, save_csv = True, add_csv_suffix = True)
 
 if __name__ == "__main__":
 # =============================================================================

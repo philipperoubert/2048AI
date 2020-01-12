@@ -6,6 +6,13 @@ import time;
 #     Scores
 # =============================================================================
 
+def plot_boxes(data, title = "", *args, **kwargs):
+    fig, ax = plt.subplots()
+    if title:
+        ax.set_title(title)
+    
+    ax.boxplot(data, *args, **kwargs)
+
 def plot_table(df):
     plt.rcParams["figure.figsize"] = (12, 12)
     fig, ax = plt.subplots()
@@ -32,21 +39,7 @@ def calculate_move_direction_percentage(moves, total):
     for direction, value in moves.items():
         percentage.append((direction, str(round(value / total, 2)) + '%'))
     return percentage
-    
-# total = calculate_moves_total({
-#     'w': 25,
-#     'a': 50
-# })
-# perc = calculate_move_direction_percentage({
-#     'w': 25,
-#     'a': 50
-# }, total)
-
-# print('total', total)
-# print('perc', perc)
-    
-data = pd.DataFrame([[12], [12], [12], [6], [6], [12], [3], [3]], columns=['score'])
-        
+ 
 def plot_game_reports(data, save_csv = True, add_csv_suffix = True):    
     df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win', 'Highest Tile'])
     if save_csv:
@@ -58,6 +51,8 @@ def plot_game_reports(data, save_csv = True, add_csv_suffix = True):
     
     # Plot table
     plot_table(df)
+    print('check', df['Score'].values)
+    plot_boxes([df['Score'].values], 'Score', labels=['NN scores'])
     # Score for the best game
     best_moves, best_score, best_time, best_mean, didWin, highest_tile = df.iloc[df['Score'].idxmax()]
     print('================ Best ====================')
