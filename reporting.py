@@ -2,10 +2,10 @@ from termcolor import colored
 import matplotlib.pyplot as plt
 import pandas as pd
 import time;
+import numpy as np
 # =============================================================================
 #     Scores
 # =============================================================================
-
 def plot_boxes(data, title = "", *args, **kwargs):
     fig, ax = plt.subplots()
     if title:
@@ -41,7 +41,7 @@ def calculate_move_direction_percentage(moves, total):
     return percentage
  
 def plot_game_reports(data, save_csv = True, add_csv_suffix = True, csv_filename = './data/game_report{}.csv'):    
-    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win', 'Highest Tile'])
+    df = pd.DataFrame(data, columns=['Moves', 'Score', 'Time', 'Mean Time Per Move', 'Did Win', 'Highest Tile', 'Board'])
     if save_csv:
         suffix = ''
         if add_csv_suffix:
@@ -51,10 +51,11 @@ def plot_game_reports(data, save_csv = True, add_csv_suffix = True, csv_filename
     
     # Plot table
     plot_table(df)
-    print('check', df['Score'].values)
+    
     plot_boxes([df['Score'].values], 'Score', labels=['NN scores'])
     # Score for the best game
-    best_moves, best_score, best_time, best_mean, didWin, highest_tile = df.iloc[df['Score'].idxmax()]
+    best_moves, best_score, best_time, best_mean, didWin, highest_tile, best_board = df.iloc[df['Score'].idxmax()]
+
     print('================ Best ====================')
     print('Best score: {}'.format(best_score))
     print('Moves: {}'.format(best_moves))
@@ -62,9 +63,10 @@ def plot_game_reports(data, save_csv = True, add_csv_suffix = True, csv_filename
     print('Moves percentage: {}'.format(calculate_move_direction_percentage(best_moves, total_moves)))
     print('Time taken: {}'.format(float(best_time)))
     print('Highest tile: {}'.format(highest_tile))
-    print('Highest tile reached {} times'.format(len(df[df['Highest Tile'] == df['Highest Tile'].max()])))
+    print('Highest tile reached {} times'.format(len(df[df['Highest Tile'] == df['Highest Tile'].max()]))) 
+    print('Board', np.array(best_board).reshape(4, 4))
     print('==========================================')
-    worst_moves, worst_score, worst_time, worst_mean, didWin, worst_highest_tile = df.iloc[df['Score'].idxmin()]
+    worst_moves, worst_score, worst_time, worst_mean, didWin, worst_highest_tile, worst_board = df.iloc[df['Score'].idxmin()]
     # Score for the worst game
     print('================ Worst ===================')
     print('Worst score: {}'.format(worst_score))
@@ -72,11 +74,13 @@ def plot_game_reports(data, save_csv = True, add_csv_suffix = True, csv_filename
     total_moves = calculate_moves_total(worst_moves)
     print('Moves percentage: {}'.format(calculate_move_direction_percentage(worst_moves, total_moves)))
     print('Time taken: {}'.format(float(worst_time)))
+    print('Board', np.array(worst_board).reshape(4, 4))
     print('==========================================')
 
     wins = len(df.loc[df['Did Win'] == True])
     loses = len(df.loc[df['Did Win'] == False])
     print('Total games: {}'.format(len(data)))
+    print('Average score: {}'.format(df['Score'].mean()))
     print('Wins: {}'.format(wins))   
     print('Percentage wins: {}'.format(str(round(didWin / (loses + wins) * 100, 2)) + '%'))
     print('Loses: {}'.format(loses))

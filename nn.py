@@ -1,6 +1,7 @@
 import numpy as np
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Dropout
+from keras.optimizers import SGD
 import ast
 from ttictoc import TicToc
 import pickle
@@ -30,13 +31,15 @@ def square_root_board(row):
             row[i] = sqrt(item)
     return row
 
-def scale_data(row):
-    # return log_2_board(row)
-    return square_root_board(row)
-
-@click.group()
-def cli():
-    pass
+def scale_data(row, feature_scaler):
+    if feature_scaler == 'log2':
+        return log_2_board(row)
+    elif feature_scaler == 'one_hot':
+        return one_hot_encode(row)
+    elif feature_scaler == 'square_root':
+        return square_root_board(row)
+    else:
+        return row
 
 # =============================================================================
 # Prepare data
@@ -57,10 +60,8 @@ def prepare_y(direction):
     
     return np.array([target_row])
 
-def load_and_transform_data(path = "dataset.txt"):
-    isFirstLine = True
-    
-              
+def load_and_transform_data(path = "dataset_mc.txt", feature_scaler=None):
+    isFirstLine = True             
     
     try:
         with open(path, "r") as file:        
@@ -74,17 +75,16 @@ def load_and_transform_data(path = "dataset.txt"):
                 
                 # On the first 
                 if isFirstLine:
-                    X_train = np.array([scale_data(ast.literal_eval(line[2:]))])
+                    X_train = np.array([scale_data(ast.literal_eval(line[2:]), feature_scaler)])
                     y_train = np.array(prepare_y(line[0]))
                     isFirstLine = False
                 else:
-                    X_train = np.append(X_train, [scale_data(ast.literal_eval(line[2:]))], axis=0)
+                    X_train = np.append(X_train, [scale_data(ast.literal_eval(line[2:]), feature_scaler)], axis=0)
                     y_train = np.append(y_train, prepare_y(line[0]), axis=0)
     except:
         pass
     pickle.dump((X_train, y_train), open('./data/transformed_dataset.pickle', 'wb'))
-    scaler = StandardScaler()
-    # return scaler.fit_transform(X_train), y_train
+    
     return X_train, y_train
         
 def load_transformed_data():
@@ -94,23 +94,19 @@ def load_transformed_data():
 # Train model
 # =============================================================================
 
-def train_model(X_train, y_train):    
+def train_model(X_train, y_train, output_activation):    
     print('Training new model')
     model = Sequential()
-
     model.add(Dense(16, activation='relu', input_dim=16))
     model.add(Dense(128, activation='relu'))
-    # model.add(Dropout(0.1))
+    model.add(Dense(256, activation='relu'))       
+    model.add(Dense(512, activation='relu'))
     model.add(Dense(256, activation='relu'))    
-    # model.add(Dropout(0.1))
-    model.add(Dense(512, activation='relu'))    
-    # model.add(Dropout(0.1))
-    model.add(Dense(256, activation='relu'))    
-    # model.add(Dropout(0.1))
     model.add(Dense(128, activation='relu'))
-    model.add(Dense(4, activation='softmax'))
+    model.add(Dense(4, activation='relu'))
     print(model.summary())
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    sgd = SGD(lr=0.01, momentum=0.9,nesterov=True)
+    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
 
     model.fit(X_train, y_train, batch_size = 100, epochs = 100)
     
@@ -134,9 +130,9 @@ def get_move_by_value(move, moves_map):
         if move == value:
             return key
 
-def play(original_board, model, print_board, color):
+def play(original_board, model, print_board, color, feature_scaler):
     # Initialise the board
-    board1 = Board(original_board.board, original_board.points)
+    board = Board(original_board.board, original_board.points)
     
     # Start game timer
     t_game = TicToc()
@@ -151,67 +147,74 @@ def play(original_board, model, print_board, color):
     }
     
     # Get initial available moves
-    available_moves = board1.moves_available(board1)
+    available_moves = board.moves_available(board)
     
     move_time = []
     # Play the game as long as we have available moves
     while available_moves:
         t.tic()  
         if print_board == 'True':
-            beautify_print(board1.board, color)  
-        old_board = np.copy(board1.board)
+            beautify_print(board.board, color)  
+        old_board = np.copy(board.board)
         for i in range(1,5):
-            board_to_predict = np.array([scale_data(board1.board.flatten())])
+            board_to_predict = np.array([scale_data(board.board.flatten(), feature_scaler)])
             # print('board to predict', board_to_predict)
             predicted_move = model.predict(board_to_predict)
             
             move_y = np.argsort(predicted_move[0])[-i]
             predicted_move_key = get_move_by_value(move_y, moves_map)
-            board1.make_move(predicted_move_key)
+            board.make_move(predicted_move_key)
             moves[predicted_move_key] += 1
-            if not np.array_equal(board1.board, old_board):
+            if not np.array_equal(board.board, old_board):
                 break
       
         # Get available moves for the next round
-        available_moves = board1.moves_available(board1)
+        available_moves = board.moves_available(board)
         # Add time duration of the move
         t.toc()
         move_time.append(t.elapsed)
-    score = board1.points
+    score = board.points
     t_game.toc()
     game_duration = t_game.elapsed
-    highest_tile = np.max(board1.board)
+    highest_tile = np.max(board.board)
     didWin = highest_tile >= 2048
-    return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin, highest_tile)
+    return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin, highest_tile, board.board.flatten())
+
+@click.group()
+def cli():
+    pass
 
 @cli.command('start')
 # True|False
 @click.option('--print_board', default='False')
 # True|False
-@click.option('--transform_dataset', default='False')
+@click.option('--transform_dataset', default='True')
 # True|False
-@click.option('--retrain_model', default='False')
+@click.option('--retrain_model', default='True')
+@click.option('--output_activation', default='relu')
+# one_hot|log_2|square_root|None
+@click.option('--feature_scaler', default=None)
 # Number - Number of games to play
 @click.option('--games', default=5)
 # True|False
 @click.option('--color', default='True')
-def start(print_board, transform_dataset, retrain_model, games, color):
+def start(print_board, transform_dataset, retrain_model, output_activation, feature_scaler, games, color):
 # =============================================================================
 # Load transformed dataset or transform the original one
 # ============================================================================= 
     try:
         print('Trying to load transformed dataset')
-        X_train, y_train = load_transformed_data() if transform_dataset == 'True' else load_and_transform_data()
-        print('Transformed dataset loaded')
+        X_train, y_train = load_transformed_data() if transform_dataset == 'True' else load_and_transform_data(feature_scaler=feature_scaler)
+        print('Transformed dataset loaded', X_train.shape)
     except Exception:
         print('Could not load transformed data. Transforming original dataset')
-        X_train, y_train = load_and_transform_data()
+        X_train, y_train = load_and_transform_data(feature_scaler=feature_scaler)
 # =============================================================================
 # Load Keras model or train a new one
 # =============================================================================
     try:
         if retrain_model == 'True':
-            model = train_model(X_train, y_train)
+            model = train_model(X_train, y_train, output_activation)
         else:
             print('Trying to load a model')
             json_file = open('model/model.json', 'r')
@@ -221,13 +224,13 @@ def start(print_board, transform_dataset, retrain_model, games, color):
             model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
             print('Saved model loaded')
     except:
-        model = train_model(X_train, y_train)
+        model = train_model(X_train, y_train, output_activation)
    
     output = []
     for i in range(0, games):
         board = Board()
-        output.append(play(board, model, print_board, color))    
-    plot_game_reports(output, save_csv = True, add_csv_suffix = True)
+        output.append(play(board, model, print_board, color, feature_scaler))    
+    plot_game_reports(output, save_csv = True, add_csv_suffix = False, csv_filename="./data/mc-softmax-log_scaler.csv")
 
 if __name__ == "__main__":
 # =============================================================================
@@ -257,6 +260,12 @@ if __name__ == "__main__":
 # --games Number
 #
 #   Number of games to play by the Neural Network
+#
+# --games feature_scaler
+#
+#   Choose which feature scaler method to use.
+#   one_hot | log_2 | square_root
+#   Default is None
 #
 # --color True|False
 #
