@@ -1,6 +1,5 @@
 import ast
 import pickle
-from multiprocessing import cpu_count
 from math import sqrt
 import numpy as np
 from keras.models import Sequential, model_from_json
@@ -10,7 +9,6 @@ from ttictoc import TicToc
 import click
 from board import Board
 from reporting import beautify_print, plot_game_reports
-cpus = cpu_count()
 
 def one_hot_encode(row):
     """
@@ -294,7 +292,7 @@ if __name__ == "__main__":
 #
 #
 # =============================================================================
-    # cli()
-    start()
+    cli()
+    # start()
     pass
        
