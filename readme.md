@@ -1,5 +1,45 @@
 # Game2048 with Keras neural network
 
+## Contents
+
+nn.py - Implementation of neural network with Keras
+
+reporting.py - Functions to report statistics from neural network runs
+
+search_algorithm.py - Play the game with Expectimax
+
+generate_expectimax_data.py - Generate data with Expectimax
+
+monte_carlo_simulator.py - Monte Carlo Tree Search
+
+requirements.txt - Libraries required for the project
+
+model - Store trained Keras model
+
+data - Store data results and transformed dataset
+
+log - Logging directory
+
+board_with_heuristics.py - Game2048 implementation with heuristics
+
+board.py - Game2048 implementation
+
+dataset_mc.txt - Large Monte Carlo dataset
+
+dataset_mc_old.txt - Smaller Monte Carlo dataset
+
+dataset.txt - Expectimax dataset
+
+mc-softmax-5k.csv - Results from running 5k games on softmax activation with 1 hidden layer
+
+## How to run neural network
+
+First install required libraries
+
+```
+pip install -r requirements.txt
+```
+
 You can run the neural network in 2 ways.
 
 1. From CLI - 'python nn.py start'
@@ -8,8 +48,9 @@ You can run the neural network in 2 ways.
 If you have problems running the cli version you might want to use Anaconda prompt
 or make sure you have installed corect packages.
 
+
 *******
-cli args
+nn.py cli arguments
 
 --print_board True|False
 
@@ -39,3 +80,9 @@ cli args
 
   For Window's CMD that do not work well with color printing. True turns it on,
   False turns it off. Default is True.
+  
+To run other algorithms you can run them from CLi:
+
+```
+python <filename>.py
+```
