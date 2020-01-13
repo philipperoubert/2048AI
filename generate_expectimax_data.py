@@ -1,5 +1,5 @@
-from board_with_heuristics import Board
 import os
+from board_with_heuristics import Board
 from termcolor import colored
 
 
@@ -17,8 +17,9 @@ def beautify_print(board):
         board: 4x4 np array representing the board.
     """
 
-    color_dict = {0: "red", 2: "green", 4: "yellow", 8: "blue", 16: "magenta", 32: "cyan", 64: "green",
-                  128: "yellow", 256: "blue", 512: "magenta", 1024: "cyan", 2048: "green", 5096: "yellow"}
+    color_dict = {0: "red", 2: "green", 4: "yellow", 8: "blue", 16: "magenta", 32: "cyan",
+                  64: "green", 128: "yellow", 256: "blue", 512: "magenta", 1024: "cyan",
+                  2048: "green", 5096: "yellow"}
     print("==================")
     for i in range(4):
         print("|", end=" ")
@@ -69,25 +70,26 @@ def find_children(board, is_initial=False):
 
 
 if __name__ == "__main__":
-    
+
     for i in range(5000):
 
         board1 = Board()  # Initialise a board
-    
+
         cls()  # using clear function here as it seems that not using it would corrupt the output
-    
+
         print("Board initialised:")
-    
+
         while board1.moves_available():
             # cls() # comment this out if you want the program to print out everything
             #beautify_print(board1.board)
             depth = 0
             max_depth = 2
-            tree = {"w": [[], []], "a": [[], []], "s": [[], []], "d": [[], []]}  # {move:[[parents][children]]}
+            # {move:[[parents][children]]}
+            tree = {"w": [[], []], "a": [[], []], "s": [[], []], "d": [[], []]}  
             available_moves = board1.moves_available(True)  # Gets a list of all possible moves
-    
+
             while depth < max_depth:
-    
+
                 # Generate all children nodes
                 if depth == 0:  # Initialising the tree dictionary with depth 1 children
                     for move in available_moves:
@@ -100,7 +102,7 @@ if __name__ == "__main__":
                         for parent in tree[move][0]:
                             tree[move][1] += find_children(board=parent)
                 depth += 1
-    
+
                 # Determine updated average score for each move
                 average_scores = []
                 for move in available_moves:
@@ -119,7 +121,7 @@ if __name__ == "__main__":
                         average_scores[-1] /= (len(tree[move][0]))
                     else:
                         average_scores[-1] = 0
-                    
+
                     # Determines best move
                 best_move = []
                 best_move_avg = 0
@@ -134,23 +136,22 @@ if __name__ == "__main__":
                 compare_moves = available_moves[:]
                 if len(available_moves) == 1:
                     print(str(best_move[0] + "," + str(board1.board.flatten())))
-                    file1 = open("exdata.txt","a") 
-                    
+                    file1 = open("exdata.txt", "a")
+
                     # Writes to training data text file
-                    file1.write(str(best_move[0] + "," + str(board1.board.flatten().tolist())) + "\n") 
-                    file1.close() 
+                    file1.write(str(best_move[0] + "," + str(board1.board.flatten().tolist())) + "\n")
+                    file1.close()
                     board1.make_move(best_move[0])
                     break
                 if depth == max_depth:
-                    file1 = open("exdata.txt","a")#append mode 
-                    
+                    file1 = open("exdata.txt", "a")
+
                     # Writes to training data text file
-                    file1.write(str(best_move[0] + "," + str(board1.board.flatten().tolist())) + "\n") 
+                    file1.write(str(best_move[0] + "," + str(board1.board.flatten().tolist())) + "\n")
                     file1.close()
                     board1.make_move(best_move[0])
-                    
-                     
-    
+
+
     cls()
     #beautify_print(board1.board)
     print("Final score: " + str(board1.points))

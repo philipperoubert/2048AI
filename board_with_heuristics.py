@@ -3,7 +3,12 @@ import random
 
 
 class Board(object):
-
+    """
+    Board is a 2048 board game simulated representation.
+    Attributes:
+        board: 4x4 np array
+        points: the current score of the current board array
+    """
     def __init__(self, board=None, points=0):
         if board is None:
             self.board = np.zeros([4, 4])
@@ -61,62 +66,60 @@ class Board(object):
 
         """
 
-        x1 = 100  # weighting of highest cell being in top left
-        x2 = -2  # weighting on having many free cells
-        x3 = 5  # weighting of having many adjacent moves available
-        x4 = 75  # weighting of second highest cell being next to highest
-        x5 = 1  # weighting of achiving a good score
+        x_1 = 100  # weighting of highest cell being in top left
+        x_2 = -2  # weighting on having many free cells
+        x_3 = 5  # weighting of having many adjacent moves available
+        x_4 = 75  # weighting of second highest cell being next to highest
+        x_5 = 1  # weighting of achiving a good score
         # x6 = 200 #weighting of merging the third largest cells
 
-        z1 = 0
+        z_1 = 0
         i, j = self.argmax2d()
-        if (self.in_corner(i, j)):
-            z1 = 1
+        if self.in_corner(i, j):
+            z_1 = 1
 
         free_cells = np.where(self.board.reshape(-1) == 0)[0]
-        z2 = len(free_cells)
+        z_2 = len(free_cells)
 
-        z3 = self.get_number_adjacent()
-        z4 = 0
-        z5 = self.points
+        z_3 = self.get_number_adjacent()
+        z_4 = 0
+        z_5 = self.points
         locations_second_highest = np.argwhere(self.board == self.second_highest())
-        for h in locations_second_highest:
-            if (h[0] == 1 and h[1] == 0):
-                z4 = 1
+        for location in locations_second_highest:
+            if (location[0] == 1 and location[1] == 0):
+                z_4 = 1
 
-        return (x1 * z1 + x3 * z3 + x4 * z4 + x5 * z5 + x2 * z2)
+        return x_1 * z_1 + x_3 * z_3 + x_4 * z_4 + x_5 * z_5 + x_2 * z_2
 
     def second_highest(self):
         """
         Returns the value of the second highest tile
-        
         """
         flat = self.board.flatten()
         flat.sort()
-        return (flat[-2])
+        return flat[-2]
 
     def third_highest(self):
         """
-        Returns the value of the third highest tile 
+        Returns the value of the third highest tile
         """
         flat = self.board.flatten()
         flat.sort()
-        return (flat[-3])
+        return flat[-3]
 
     def get_number_adjacent(self):
         """
-        Returns the number of merges available at each board state 
+        Returns the number of merges available at each board state
         """
         number_adjacent = 0
         number_adjacent += self.move_up(False)
         number_adjacent += self.move_left(False)
-        return (number_adjacent)
+        return number_adjacent
 
     def move_up(self, move=True):
         """
         Slides all tiles up
-        param move: Whether the board should actually be moved or if it is a test run. 
-        
+        param move: Whether the board should actually be moved or if it is a test run.
         """
         alreadymerged = []
         merge_counter = 0
@@ -132,11 +135,11 @@ class Board(object):
                             self.board[i][j] = 0
                         elif (self.board[i - 1][j] == self.board[i][j] and (
                                 str(i - 1) + "," + str(j)) not in alreadymerged and (
-                                      str(i) + "," + str(j)) not in alreadymerged):
+                                    str(i) + "," + str(j)) not in alreadymerged):
                             if move:
 
                                 self.board[i - 1][j] *= 2
-                                if (self.board[i][j] == self.third_highest()):
+                                if self.board[i][j] == self.third_highest():
                                     self.points += 100
                                 self.points += self.board[i - 1][j]
                                 self.board[i][j] = 0
@@ -154,8 +157,7 @@ class Board(object):
 
         """
                 Slides all tiles down
-                param move: Whether the board should actually be moved or if it is a test run. 
-
+                param move: Whether the board should actually be moved or if it is a test run.
                 """
         merge_counter = 0
         alreadymerged = []
@@ -171,10 +173,10 @@ class Board(object):
 
                         elif (self.board[i + 1][j] == self.board[i][j] and (
                                 str(i) + "," + str(j)) not in alreadymerged and (
-                                      str(i + 1) + "," + str(j)) not in alreadymerged):
+                                    str(i + 1) + "," + str(j)) not in alreadymerged):
                             if move:
                                 self.board[i + 1][j] *= 2
-                                if (self.board[i][j] == self.third_highest()):
+                                if self.board[i][j] == self.third_highest():
                                     self.points += 100
                                 self.points += self.board[i + 1][j]
                                 self.board[i][j] = 0
@@ -187,8 +189,7 @@ class Board(object):
     def move_left(self, move=True):
         """
                 Slides all tiles left
-                param move: Whether the board should actually be moved or if it is a test run. 
-
+                param move: Whether the board should actually be moved or if it is a test run.
                 """
         alreadymerged = []
         merge_counter = 0
@@ -204,11 +205,10 @@ class Board(object):
 
                         elif (self.board[i][j - 1] == self.board[i][j] and (
                                 str(j) + "," + str(i)) not in alreadymerged and (
-                                      str(j - 1) + "," + str(i)) not in alreadymerged):
-
+                                    str(j - 1) + "," + str(i)) not in alreadymerged):
                             if move:
                                 self.board[i][j - 1] *= 2
-                                if (self.board[i][j] == self.third_highest()):
+                                if self.board[i][j] == self.third_highest():
                                     self.points += 100
                                 self.points += self.board[i][j - 1]
 
@@ -223,8 +223,7 @@ class Board(object):
 
         """
                 Slides all tiles right
-                param move: Whether the board should actually be moved or if it is a test run. 
-
+                param move: Whether the board should actually be moved or if it is a test run.
                 """
         alreadymerged = []
         merge_counter = 0
@@ -239,11 +238,11 @@ class Board(object):
                             self.board[i][j] = 0
                         elif (self.board[i][j + 1] == self.board[i][j] and (
                                 str(j) + "," + str(i)) not in alreadymerged and (
-                                      str(j + 1) + "," + str(i)) not in alreadymerged):
+                                    str(j + 1) + "," + str(i)) not in alreadymerged):
                             if move:
                                 self.board[i][j + 1] *= 2
                                 self.points += self.board[i][j + 1]
-                                if (self.board[i][j] == self.third_highest()):
+                                if self.board[i][j] == self.third_highest():
                                     self.points += 100
                                 self.board[i][j] = 0
                                 alreadymerged.append(str(j) + "," + str(i))
@@ -282,14 +281,16 @@ class Board(object):
         return free_cells
 
     def in_corner(self, i, j):
-        if ((i == 0 and j == 0)):
-            return (True)
-        else:
-            return (False)
+        """
+        Returns True if tile is in corner, False if otherwise
+        """
+        if i == 0 and j == 0:
+            return True
+        return False
 
     def argmax2d(self):
         """
-        Returns the co-ordinates of the highest tile. 
+        Returns the co-ordinates of the highest tile.
         """
         n, m = self.board.shape
         x_ = np.ravel(self.board)

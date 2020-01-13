@@ -1,139 +1,161 @@
-import numpy as np
-from keras.models import Sequential, model_from_json
-from keras.layers import Dense, Dropout
-from keras.optimizers import SGD
 import ast
-from ttictoc import TicToc
 import pickle
 from multiprocessing import cpu_count
+from math import sqrt
+import numpy as np
+from keras.models import Sequential, model_from_json
+from keras.layers import Dense
+from keras.optimizers import SGD
+from ttictoc import TicToc
+import click
 from board import Board
 from reporting import beautify_print, plot_game_reports
-from sklearn.preprocessing import StandardScaler
-import click
-from math import sqrt
 cpus = cpu_count()
 
 def one_hot_encode(row):
+    """
+    Makes a hot encoding of the board
+    """
     for i, item in enumerate(row):
         if item > 0:
             row[i] = 1
     return row
 
 def log_2_board(row):
+    """
+    Applies a log operation to the board
+    """
     a = np.array(row)
     b = np.where(a <= 0, 1, a)
     p = np.log2(b) / np.log(65536)
     return p
 
 def square_root_board(row):
+    """
+    Applies the square root to the board
+    """
     for i, item in enumerate(row):
         if item > 0:
             row[i] = sqrt(item)
     return row
 
 def scale_data(row, feature_scaler):
+    """
+    Scales the data using different functions (hot encoding, log or square root)
+    """
     if feature_scaler == 'log_2':
         return log_2_board(row)
     elif feature_scaler == 'one_hot':
         return one_hot_encode(row)
     elif feature_scaler == 'square_root':
         return square_root_board(row)
-    else:
-        return row
+    return row
 
 # =============================================================================
 # Prepare data
 # =============================================================================
-moves_map = {
-    'w': 0,
-    'a': 1,
-    's': 2,
-    'd': 3
-}
+moves_map = {'w': 0, 'a': 1, 's': 2, 'd': 3}
 
 def prepare_y(direction):
+    """
+    Prepares the dataset labels
+    """
     move = moves_map[direction]
     target_row = np.zeros(4)
     for i in range(len(target_row)):
         if i == move:
             target_row[i] = 1
-    
     return np.array([target_row])
 
-def load_and_transform_data(path = "dataset_mc.txt", feature_scaler=None):
-    isFirstLine = True             
-    
+def load_and_transform_data(path="dataset_mc.txt", feature_scaler=None):
+    """
+    Loads the dataset from the txt file and transforms it if needed
+    """
+    is_first_line = True
+
     try:
-        with open(path, "r") as file:        
+        with open(path, "r") as file:
             for line in file.readlines():
                 # Skip an empty line
                 if len(line) == 0:
                     continue
-                
+
                 # Remove break line
                 line = line.replace("\n", "")
-                
-                # On the first 
-                if isFirstLine:
-                    X_train = np.array([scale_data(ast.literal_eval(line[2:]), feature_scaler)])
+
+                # On the first
+                if is_first_line:
+                    x_train = np.array([scale_data(ast.literal_eval(line[2:]), feature_scaler)])
                     y_train = np.array(prepare_y(line[0]))
-                    isFirstLine = False
+                    is_first_line = False
                 else:
-                    X_train = np.append(X_train, [scale_data(ast.literal_eval(line[2:]), feature_scaler)], axis=0)
+                    x_train = np.append(X_train, [scale_data(ast.literal_eval(line[2:]), feature_scaler)], axis=0)
                     y_train = np.append(y_train, prepare_y(line[0]), axis=0)
     except:
         pass
-    pickle.dump((X_train, y_train), open('./data/transformed_dataset.pickle', 'wb'))
-    
-    return X_train, y_train
-        
+    pickle.dump((x_train, y_train), open('./data/transformed_dataset.pickle', 'wb'))
+
+    return x_train, y_train
+
 def load_transformed_data():
+    """
+    Loads the transformed data
+    """
     return pickle.load(open('./data/transformed_dataset.pickle', 'r'))
 
 # =============================================================================
 # Train model
 # =============================================================================
 
-def train_model(X_train, y_train, output_activation):    
+def train_model(x_train, y_train): 
+    """
+    Trains the model
+    """
     print('Training new model')
     model = Sequential()
     model.add(Dense(16, activation='relu', input_dim=16))
     model.add(Dense(128, activation='relu'))
-    model.add(Dense(256, activation='relu'))       
+    model.add(Dense(256, activation='relu'))
     model.add(Dense(512, activation='relu'))
-    model.add(Dense(256, activation='relu'))    
+    model.add(Dense(256, activation='relu'))
     model.add(Dense(128, activation='relu'))
     model.add(Dense(4, activation='relu'))
     print(model.summary())
-    sgd = SGD(lr=0.01, momentum=0.9,nesterov=True)
+    sgd = SGD(lr=0.01, momentum=0.9, nesterov=True)
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
 
-    model.fit(X_train, y_train, batch_size = 100, epochs = 100)
-    
-    scores = model.evaluate(X_train, y_train, verbose=0)
+    model.fit(x_train, y_train, batch_size=100, epochs=100)
+
+    scores = model.evaluate(x_train, y_train, verbose=0)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
-   
+
     # Save model
     model_json = model.to_json()
     with open("model/model.json", "w") as json_file:
         json_file.write(model_json)
     model.save_weights("model/model.h5")
     print("Saved model to disk")
-    return model  
+    return model
 
 # =============================================================================
 # Play the game and predict moves
 # =============================================================================
 
 def get_move_by_value(move, moves_map):
+    """
+    Determines which move to translate to
+    """
     for key, value in moves_map.items():
         if move == value:
             return key
 
 def play(original_board, model, print_board, color, feature_scaler):
+    """
+    Simulates the game being played
+    """
     # Initialise the board
     board = Board(original_board.board, original_board.points)
-    
+
     # Start game timer
     t_game = TicToc()
     t = TicToc()
@@ -145,29 +167,28 @@ def play(original_board, model, print_board, color, feature_scaler):
         's': 0,
         'd': 0
     }
-    
+
     # Get initial available moves
     available_moves = board.moves_available(board)
-    
+
     move_time = []
     # Play the game as long as we have available moves
     while available_moves:
-        t.tic()  
+        t.tic()
         if print_board == 'True':
-            beautify_print(board.board, color)  
+            beautify_print(board.board, color)
         old_board = np.copy(board.board)
-        for i in range(1,5):
+        for i in range(1, 5):
             board_to_predict = np.array([scale_data(board.board.flatten(), feature_scaler)])
             # print('board to predict', board_to_predict)
             predicted_move = model.predict(board_to_predict)
-            
             move_y = np.argsort(predicted_move[0])[-i]
             predicted_move_key = get_move_by_value(move_y, moves_map)
             board.make_move(predicted_move_key)
             moves[predicted_move_key] += 1
             if not np.array_equal(board.board, old_board):
                 break
-      
+
         # Get available moves for the next round
         available_moves = board.moves_available(board)
         # Add time duration of the move
@@ -177,8 +198,8 @@ def play(original_board, model, print_board, color, feature_scaler):
     t_game.toc()
     game_duration = t_game.elapsed
     highest_tile = np.max(board.board)
-    didWin = highest_tile >= 2048
-    return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), didWin, highest_tile, board.board.flatten())
+    did_win = highest_tile >= 2048
+    return (moves, score, round(game_duration, 2), round(np.mean(np.array(move_time)), 2), did_win, highest_tile, board.board.flatten())
 
 @click.group()
 def cli():
@@ -191,46 +212,45 @@ def cli():
 @click.option('--transform_dataset', default='True')
 # True|False
 @click.option('--retrain_model', default='True')
-@click.option('--output_activation', default='relu')
 # one_hot|log_2|square_root|None
 @click.option('--feature_scaler', default=None)
 # Number - Number of games to play
 @click.option('--games', default=5)
 # True|False
 @click.option('--color', default='True')
-def start(print_board, transform_dataset, retrain_model, output_activation, feature_scaler, games, color):
+def start(print_board, transform_dataset, retrain_model, feature_scaler, games, color):
 # =============================================================================
 # Load transformed dataset or transform the original one
-# ============================================================================= 
+# =============================================================================
     try:
         print('Trying to load transformed dataset')
-        X_train, y_train = load_transformed_data() if transform_dataset == 'True' else load_and_transform_data(feature_scaler=feature_scaler)
+        x_train, y_train = load_transformed_data() if transform_dataset == 'True' else load_and_transform_data(feature_scaler=feature_scaler)
         print('Transformed dataset loaded', X_train.shape)
-    except Exception:
+    except:
         print('Could not load transformed data. Transforming original dataset')
-        X_train, y_train = load_and_transform_data(feature_scaler=feature_scaler)
+        x_train, y_train = load_and_transform_data(feature_scaler=feature_scaler)
 # =============================================================================
 # Load Keras model or train a new one
 # =============================================================================
     try:
         if retrain_model == 'True':
-            model = train_model(X_train, y_train, output_activation)
+            model = train_model(X_train, y_train)
         else:
             print('Trying to load a model')
             json_file = open('model/model.json', 'r')
             loaded_model_json = json_file.read()
             model = model_from_json(loaded_model_json)
-            model.load_weights('model/model.h5')    
+            model.load_weights('model/model.h5')
             model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
             print('Saved model loaded')
     except:
-        model = train_model(X_train, y_train, output_activation)
-   
+        model = train_model(x_train, y_train)
+
     output = []
     for i in range(0, games):
         board = Board()
-        output.append(play(board, model, print_board, color, feature_scaler))    
-    plot_game_reports(output, save_csv = True, add_csv_suffix = False, csv_filename="./data/mc-softmax-log_scaler.csv")
+        output.append(play(board, model, print_board, color, feature_scaler))
+    plot_game_reports(output, save_csv=True, add_csv_suffix=False, csv_filename="./data/mc-softmax-log_scaler.csv")
 
 if __name__ == "__main__":
 # =============================================================================
@@ -245,16 +265,16 @@ if __name__ == "__main__":
 #
 # --print_board True|False
 #
-#   Specifies if the board should be printed while it is being played    
-#    
+#   Specifies if the board should be printed while it is being played
+#
 # --transform_dataset True|False
-# 
+#
 #   If set to False then cached transformed dataset will be loaded
 #   Fallbacks to creating a new dataset
 #
 # --retrain_model True|False
-#   
-#   Specifies if the model should be compiled and fit with the dataset 
+#
+#   Specifies if the model should be compiled and fit with the dataset
 #   By default it will try to use a cached model and fallbacks to creating a new one
 #
 # --games Number
@@ -274,11 +294,7 @@ if __name__ == "__main__":
 #
 #
 # =============================================================================
-    # cli()   
+    # cli()
     start()
     pass
-   
-    
-    
-        
-        
+       
